@@ -92,18 +92,20 @@ function saveTicket(){
  t.unshift(getData());
  localStorage.setItem('tickets',JSON.stringify(t));
  renderHistory();
+ document.getElementById('history').scrollIntoView({behavior:'smooth'});
 }
 function renderHistory(){
  let arr=JSON.parse(localStorage.getItem('tickets')||'[]');
- history.innerHTML='';
+ const historyEl=document.getElementById('history');
+ historyEl.innerHTML='';
  arr.forEach((t,i)=>{
   let d=document.createElement('div');
   d.className='saved'; d.id='saved'+i;
   let h='<b>'+t.date+'</b><br>';
   t.columns.forEach((c,n)=>{h+='<b>Cột '+(n+1)+'</b><br>'+c.join('<br>')+'<br><br>'});
-  h+='Tổng:'+t.total+' kg<br>Trừ bì:'+t.tare+' g<br>Sau trừ bì:'+t.net+' kg<br>Đơn giá:'+Number(t.price).toLocaleString('vi-VN')+' đ<br><div class="money">'+t.money+'</div>';
+  h+='<hr><b>Tổng:</b> '+t.total+' kg<br><b>Trừ bì:</b> '+t.tare+' g<br><b>Sau trừ bì:</b> '+t.net+' kg<br><b>Đơn giá:</b> '+Number(t.price).toLocaleString('vi-VN')+' đ<br><div class="money">'+t.money+'</div>';
   h+='<button onclick="downloadSaved('+i+')">📷 Tải ảnh</button>';
-  d.innerHTML=h; history.appendChild(d);
+  d.innerHTML=h; historyEl.appendChild(d);
  });
 }
 function downloadCurrent(){
