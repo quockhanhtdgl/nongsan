@@ -6,46 +6,45 @@
 <title>Cân Nông Sản</title>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
-body{font-family:Arial,sans-serif;background:#f3f3f3;margin:10px}
+body{font-family:Arial;margin:10px;background:#f4f4f4}
 .card{background:#fff;padding:12px;border-radius:12px;margin-bottom:10px}
 #columns{display:flex;gap:10px;overflow:auto}
-.column{background:#fff;padding:10px;border-radius:10px;min-width:120px}
-.column input{width:100%;padding:8px;margin:3px 0;box-sizing:border-box;font-size:18px}
+.column{background:#fff;padding:10px;border-radius:10px;min-width:130px}
+.column input{width:100%;padding:10px;margin:4px 0;font-size:20px;box-sizing:border-box}
 .total{font-weight:bold;color:green}
-.bigkg{font-size:34px;font-weight:bold;color:#0056d6}
+.big{font-size:36px;font-weight:bold;color:#0056d6}
 .money{font-size:42px;font-weight:bold;color:red}
-button{padding:12px;border:none;border-radius:8px;margin:3px;font-size:16px}
+.tare{background:#fff3cd;font-size:28px;font-weight:bold}
+.price{background:#d1ecf1;font-size:28px;font-weight:bold}
+button{padding:12px;border:none;border-radius:8px;margin:4px;font-size:16px}
+.history-item{padding:8px;border-bottom:1px solid #ddd}
 </style>
 </head>
 <body>
-
 <div id="capture">
 <div class="card">
 <h2>📦 CÂN NÔNG SẢN</h2>
-
-<label>Đơn vị:</label>
 <select id="unit">
 <option value="kg">Kg</option>
 <option value="g">Gam</option>
 </select>
-
-<p id="time"></p>
+<span id="time"></span>
 </div>
 
 <div id="columns"></div>
 
 <div class="card">
 <p>Tổng khối lượng</p>
-<div class="bigkg"><span id="grand">0.000</span> kg</div>
+<div class="big"><span id="grand">0.000</span> kg</div>
 
 <p>Trừ bì (gam)</p>
-<input id="tare" type="number" value="0">
+<input class="tare" id="tare" type="number" inputmode="numeric" value="0">
 
 <p>Khối lượng sau trừ bì</p>
-<div class="bigkg"><span id="net">0.000</span> kg</div>
+<div class="big"><span id="net">0.000</span> kg</div>
 
 <p>Đơn giá (đ/kg)</p>
-<input id="price" type="number" value="0">
+<input class="price" id="price" type="number" inputmode="numeric" value="0">
 
 <p>Thành tiền</p>
 <div class="money" id="money">0 đ</div>
@@ -53,153 +52,128 @@ button{padding:12px;border:none;border-radius:8px;margin:3px;font-size:16px}
 </div>
 
 <div class="card">
-<button onclick="downloadPNG()">📷 Xuất ảnh</button>
 <button onclick="saveTicket()">💾 Lưu phiếu</button>
-<button onclick="newTicket()">🗑 Phiếu mới</button>
+<button onclick="downloadCurrent()">📷 Xuất ảnh</button>
 </div>
 
 <div class="card">
-<h3>Lịch sử phiếu đã lưu</h3>
+<h3>Phiếu đã lưu</h3>
 <div id="history"></div>
 </div>
 
 <script>
 function createColumn(){
- const col=document.createElement('div');
- col.className='column';
- col.innerHTML='<h4>Cột '+(document.querySelectorAll(".column").length+1)+'</h4>';
-
+ let c=document.createElement('div');
+ c.className='column';
+ c.innerHTML='<h4>Cột '+(document.querySelectorAll(".column").length+1)+'</h4>';
  for(let i=0;i<5;i++){
-   const inp=document.createElement('input');
-   inp.type='number';
-   inp.step='0.001';
-   inp.oninput=()=>{
-      update();
-      autoAdd();
-      autoSave();
-   };
-   col.appendChild(inp);
+  let inp=document.createElement('input');
+  inp.type='number';
+  inp.step='0.001';
+  inp.inputMode='decimal';
+  inp.oninput=()=>{update();autoAdd();};
+  c.appendChild(inp);
  }
-
- const total=document.createElement('div');
- total.className='total';
- total.innerText='0.000 kg';
- col.appendChild(total);
-
- document.getElementById('columns').appendChild(col);
+ let t=document.createElement('div');
+ t.className='total';
+ t.textContent='0.000 kg';
+ c.appendChild(t);
+ columns.appendChild(c);
 }
 
 function autoAdd(){
- const last=document.querySelector('.column:last-child');
- if(!last) return;
-
+ let last=document.querySelector('.column:last-child');
  let ok=true;
- last.querySelectorAll('input').forEach(i=>{
-   if(i.value==='') ok=false;
- });
-
+ last.querySelectorAll('input').forEach(i=>{if(i.value==='') ok=false});
  if(ok) createColumn();
 }
 
 function update(){
  let grand=0;
- const unit=document.getElementById('unit').value;
-
+ let unit=unitEl.value;
  document.querySelectorAll('.column').forEach(col=>{
-   let ct=0;
-
-   col.querySelectorAll('input').forEach(i=>{
-      let v=parseFloat(i.value)||0;
-      if(unit==='g') v/=1000;
-      ct+=v;
-   });
-
-   col.querySelector('.total').innerText=ct.toFixed(3)+' kg';
-   grand+=ct;
+  let ct=0;
+  col.querySelectorAll('input').forEach(i=>{
+   let v=parseFloat(i.value)||0;
+   if(unit==='g') v/=1000;
+   ct+=v;
+  });
+  col.querySelector('.total').textContent=ct.toFixed(3)+' kg';
+  grand+=ct;
  });
-
- document.getElementById('grand').innerText=grand.toFixed(3);
-
- const tare=(parseFloat(document.getElementById('tare').value)||0)/1000;
- const net=grand-tare;
-
- document.getElementById('net').innerText=net.toFixed(3);
-
- const price=parseFloat(document.getElementById('price').value)||0;
- document.getElementById('money').innerText=(net*price).toLocaleString('vi-VN')+' đ';
+ grandEl.textContent=grand.toFixed(3);
+ let net=grand-((parseFloat(tare.value)||0)/1000);
+ netEl.textContent=net.toFixed(3);
+ let money=net*(parseFloat(price.value)||0);
+ moneyEl.textContent=money.toLocaleString('vi-VN')+' đ';
 }
 
-function collectData(){
- const bags=[];
-
- document.querySelectorAll('.column input').forEach(i=>{
-   bags.push(i.value||'');
- });
-
+function snapshotData(){
  return {
-   bags:bags,
-   tare:document.getElementById('tare').value,
-   price:document.getElementById('price').value,
-   unit:document.getElementById('unit').value
+  date:new Date().toLocaleString(),
+  html:document.getElementById('capture').innerHTML,
+  kg:netEl.textContent,
+  money:moneyEl.textContent
  };
 }
 
-function autoSave(){
- localStorage.setItem('currentTicket',JSON.stringify(collectData()));
-}
-
 function saveTicket(){
- const tickets=JSON.parse(localStorage.getItem('tickets')||'[]');
-
- tickets.unshift({
-   time:new Date().toLocaleString(),
-   kg:document.getElementById('net').innerText,
-   money:document.getElementById('money').innerText
- });
-
- localStorage.setItem('tickets',JSON.stringify(tickets));
+ let arr=JSON.parse(localStorage.getItem('tickets')||'[]');
+ arr.unshift(snapshotData());
+ localStorage.setItem('tickets',JSON.stringify(arr));
  loadHistory();
  alert('Đã lưu phiếu');
 }
 
 function loadHistory(){
- const tickets=JSON.parse(localStorage.getItem('tickets')||'[]');
-
- document.getElementById('history').innerHTML=
-   tickets.slice(0,30).map(t=>
-   '<div>'+t.time+' | '+t.kg+' kg | '+t.money+'</div>'
-   ).join('');
+ let arr=JSON.parse(localStorage.getItem('tickets')||'[]');
+ history.innerHTML=arr.map((t,i)=>
+  `<div class="history-item">
+   ${t.date} | ${t.kg} kg | ${t.money}
+   <button onclick="exportSaved(${i})">Tải ảnh</button>
+  </div>`).join('');
 }
 
-function downloadPNG(){
- html2canvas(document.getElementById('capture'),{
-   scale:4,
-   useCORS:true
- }).then(canvas=>{
-   const a=document.createElement('a');
+function exportSaved(i){
+ let arr=JSON.parse(localStorage.getItem('tickets')||'[]');
+ let box=document.createElement('div');
+ box.style.background='white';
+ box.style.padding='20px';
+ box.innerHTML=arr[i].html;
+ document.body.appendChild(box);
+ html2canvas(box,{scale:4}).then(c=>{
+   let a=document.createElement('a');
+   a.download='phieu-da-luu.png';
+   a.href=c.toDataURL('image/png');
+   a.click();
+   box.remove();
+ });
+}
+
+function downloadCurrent(){
+ html2canvas(document.getElementById('capture'),{scale:4}).then(c=>{
+   let a=document.createElement('a');
    a.download='phieu-can.png';
-   a.href=canvas.toDataURL('image/png');
+   a.href=c.toDataURL('image/png');
    a.click();
  });
 }
 
-function newTicket(){
- if(prompt('Nhập XOA để xác nhận')==='XOA'){
-   localStorage.removeItem('currentTicket');
-   location.reload();
- }
-}
+const unitEl=document.getElementById('unit');
+const tare=document.getElementById('tare');
+const price=document.getElementById('price');
+const grandEl=document.getElementById('grand');
+const netEl=document.getElementById('net');
+const moneyEl=document.getElementById('money');
 
-document.getElementById('tare').oninput=()=>{update();autoSave();};
-document.getElementById('price').oninput=()=>{update();autoSave();};
-document.getElementById('unit').onchange=()=>{update();autoSave();};
+unitEl.onchange=update;
+tare.oninput=update;
+price.oninput=update;
 
-document.getElementById('time').innerText=new Date().toLocaleString();
-
+document.getElementById('time').textContent=new Date().toLocaleString();
 createColumn();
 update();
 loadHistory();
 </script>
-
 </body>
 </html>
