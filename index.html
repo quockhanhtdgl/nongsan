@@ -17,6 +17,9 @@ body{font-family:Arial;background:#f5f5f5;margin:10px}
 .price{background:#d1ecf1;font-size:28px;font-weight:bold}
 .saved{background:#fff;border:1px solid #ddd;padding:10px;margin:10px 0;border-radius:8px}
 button{padding:10px;border:none;border-radius:8px;margin:4px}
+.colsum{font-size:24px;font-weight:bold;text-align:center;margin-top:6px}
+.total-main{font-size:42px;font-weight:bold;color:#0056d6}
+.net-main{font-size:42px;font-weight:bold;color:#198754}
 </style>
 </head>
 <body>
@@ -24,10 +27,10 @@ button{padding:10px;border:none;border-radius:8px;margin:4px}
 <h2>📦 Cân Nông Sản</h2>
 <select id="unit"><option value="kg">Kg</option><option value="g">Gam</option></select>
 <div id="columns"></div>
-<p>Tổng: <span id="grand">0.000</span> kg</p>
+<p><b>Tổng:</b> <span id="grand" class="total-main">0.000</span> kg</p>
 <p>Trừ bì (gam)</p>
 <input id="tare" class="tare" type="number" inputmode="numeric" placeholder="Nhập bì">
-<p>Sau trừ bì: <span id="net">0.000</span> kg</p>
+<p><b>Sau trừ bì:</b> <span id="net" class="net-main">0.000</span> kg</p>
 <p>Đơn giá</p>
 <input id="price" class="price" type="number" inputmode="numeric" placeholder="Nhập đơn giá">
 <div class="money" id="money">0 đ</div>
@@ -35,8 +38,6 @@ button{padding:10px;border:none;border-radius:8px;margin:4px}
 
 <div class="card">
 <button onclick="saveTicket()">💾 Lưu phiếu</button>
-<button onclick="clearInputs()">🧹 Xóa dữ liệu nhập</button>
-<button onclick="clearAllTickets()">🗑️ Xóa toàn bộ phiếu</button>
 <button onclick="downloadCurrent()">📷 Xuất ảnh</button>
 <button onclick="exportJSON()">💾 Xuất JSON</button>
 <button onclick="document.getElementById('importFile').click()">📂 Nhập JSON</button>
@@ -62,8 +63,8 @@ function createColumn(){
   c.appendChild(inp);
  }
  let s=document.createElement('div');
- s.className='big colsum';
- s.textContent='Tổng: 0.000';
+ s.className='colsum';
+ s.textContent='0.000';
  c.appendChild(s);
  columns.appendChild(c);
 }
@@ -84,12 +85,7 @@ function update(){
    colTotal+=v;
   });
   let sum=col.querySelector('.colsum');
-  if(!sum){
-   sum=document.createElement('div');
-   sum.className='big colsum';
-   col.appendChild(sum);
-  }
-  sum.textContent='Tổng: '+colTotal.toFixed(3);
+  if(sum) sum.textContent=colTotal.toFixed(3);
  });
  grand.textContent=total.toFixed(3);
  let netv=total-((parseFloat(tare.value)||0)/1000);
@@ -141,22 +137,6 @@ function deleteTicket(i){
  localStorage.setItem('tickets',JSON.stringify(t));
  renderHistory();
 }
-
-function clearInputs(){
- if(prompt('Nhập "Xác Nhận" để xóa toàn bộ dữ liệu đã nhập')!=='Xác Nhận') return;
- columns.innerHTML='';
- tare.value='';
- price.value='';
- createColumn();
- update();
-}
-
-function clearAllTickets(){
- if(prompt('Nhập "Xác Nhận" để xóa toàn bộ phiếu đã lưu')!=='Xác Nhận') return;
- localStorage.removeItem('tickets');
- renderHistory();
-}
-
 function exportJSON(){
  const data=localStorage.getItem('tickets')||'[]';
  const blob=new Blob([data],{type:'application/json'});
