@@ -21,7 +21,7 @@ button{padding:10px;border:none;border-radius:8px;margin:4px}
 </head>
 <body>
 <div id="capture" class="card">
-<h2>📦 Cân Tính Nông Sản</h2>
+<h2>📦 Cân Nông Sản</h2>
 <select id="unit"><option value="kg">Kg</option><option value="g">Gam</option></select>
 <div id="columns"></div>
 <p>Tổng: <span id="grand">0.000</span> kg</p>
@@ -35,6 +35,8 @@ button{padding:10px;border:none;border-radius:8px;margin:4px}
 
 <div class="card">
 <button onclick="saveTicket()">💾 Lưu phiếu</button>
+<button onclick="clearInputs()">🧹 Xóa dữ liệu nhập</button>
+<button onclick="clearAllTickets()">🗑️ Xóa toàn bộ phiếu</button>
 <button onclick="downloadCurrent()">📷 Xuất ảnh</button>
 <button onclick="exportJSON()">💾 Xuất JSON</button>
 <button onclick="document.getElementById('importFile').click()">📂 Nhập JSON</button>
@@ -59,6 +61,10 @@ function createColumn(){
   inp.oninput=()=>{update();autoAdd();};
   c.appendChild(inp);
  }
+ let s=document.createElement('div');
+ s.className='big colsum';
+ s.textContent='Tổng: 0.000';
+ c.appendChild(s);
  columns.appendChild(c);
 }
 function autoAdd(){
@@ -69,10 +75,21 @@ function autoAdd(){
 }
 function update(){
  let total=0;
- document.querySelectorAll('.column input').forEach(i=>{
-  let v=parseFloat(i.value)||0;
-  if(document.getElementById('unit').value==='g') v/=1000;
-  total+=v;
+ document.querySelectorAll('.column').forEach(col=>{
+  let colTotal=0;
+  col.querySelectorAll('input').forEach(i=>{
+   let v=parseFloat(i.value)||0;
+   if(document.getElementById('unit').value==='g') v/=1000;
+   total+=v;
+   colTotal+=v;
+  });
+  let sum=col.querySelector('.colsum');
+  if(!sum){
+   sum=document.createElement('div');
+   sum.className='big colsum';
+   col.appendChild(sum);
+  }
+  sum.textContent='Tổng: '+colTotal.toFixed(3);
  });
  grand.textContent=total.toFixed(3);
  let netv=total-((parseFloat(tare.value)||0)/1000);
@@ -124,6 +141,22 @@ function deleteTicket(i){
  localStorage.setItem('tickets',JSON.stringify(t));
  renderHistory();
 }
+
+function clearInputs(){
+ if(prompt('Nhập "Xác Nhận" để xóa toàn bộ dữ liệu đã nhập')!=='Xác Nhận') return;
+ columns.innerHTML='';
+ tare.value='';
+ price.value='';
+ createColumn();
+ update();
+}
+
+function clearAllTickets(){
+ if(prompt('Nhập "Xác Nhận" để xóa toàn bộ phiếu đã lưu')!=='Xác Nhận') return;
+ localStorage.removeItem('tickets');
+ renderHistory();
+}
+
 function exportJSON(){
  const data=localStorage.getItem('tickets')||'[]';
  const blob=new Blob([data],{type:'application/json'});
