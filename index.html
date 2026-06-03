@@ -10,11 +10,13 @@
 
 <title>Cân Nông Sản</title>
 
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <style>
 
 body{
 
-    font-family: Arial, sans-serif;
+    font-family:Arial,sans-serif;
 
     margin:15px;
 
@@ -25,6 +27,34 @@ body{
 h2{
 
     text-align:center;
+
+}
+
+#capture{
+
+    background:#f5f5f5;
+
+}
+
+.topbar{
+
+    background:white;
+
+    padding:15px;
+
+    border-radius:10px;
+
+    margin-bottom:15px;
+
+    box-shadow:0 0 5px rgba(0,0,0,.1);
+
+}
+
+.topbar select{
+
+    padding:8px;
+
+    font-size:16px;
 
 }
 
@@ -48,17 +78,17 @@ h2{
 
     border-radius:10px;
 
-    min-width:100px;
+    min-width:110px;
 
-    box-shadow:0 0 5px rgba(0,0,0,0.1);
+    box-shadow:0 0 5px rgba(0,0,0,.1);
 
 }
 
 .column h3{
 
-    text-align:center;
-
     margin:0 0 10px;
+
+    text-align:center;
 
 }
 
@@ -72,9 +102,9 @@ h2{
 
     padding:8px;
 
-    text-align:center;
-
     font-size:16px;
+
+    text-align:center;
 
 }
 
@@ -100,7 +130,7 @@ h2{
 
     margin-top:15px;
 
-    box-shadow:0 0 5px rgba(0,0,0,0.1);
+    box-shadow:0 0 5px rgba(0,0,0,.1);
 
 }
 
@@ -130,17 +160,53 @@ h2{
 
     font-weight:bold;
 
-    color:blue;
+    color:#0056d6;
 
 }
 
 .money{
 
-    font-size:32px;
+    font-size:34px;
 
     font-weight:bold;
 
     color:red;
+
+    margin-top:10px;
+
+}
+
+.btn{
+
+    width:100%;
+
+    padding:12px;
+
+    font-size:18px;
+
+    margin-top:15px;
+
+    border:none;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+}
+
+.btn-download{
+
+    background:#28a745;
+
+    color:white;
+
+}
+
+.btn-reset{
+
+    background:#dc3545;
+
+    color:white;
 
 }
 
@@ -150,7 +216,23 @@ h2{
 
 <body>
 
-<h2>📦 Cân Nông Sản</h2>
+<div id="capture">
+
+<h2>📦 CÂN NÔNG SẢN</h2>
+
+<div class="topbar">
+
+    <label>Đơn vị nhập liệu</label>
+
+    <select id="unit">
+
+        <option value="kg">Kg</option>
+
+        <option value="g">Gam</option>
+
+    </select>
+
+</div>
 
 <div id="columns"></div>
 
@@ -160,13 +242,29 @@ h2{
 
         Tổng khối lượng:
 
-        <span class="total" id="grandTotal">0</span> kg
+        <div class="total">
+
+            <span id="grandTotal">0.000</span> kg
+
+        </div>
 
     </div>
 
-    <label>Trừ bì (kg)</label>
+    <label>Trừ bì (gam)</label>
 
     <input type="number" id="tare" value="0">
+
+    <div style="margin-top:15px;">
+
+        Khối lượng sau trừ bì:
+
+        <div class="total">
+
+            <span id="netWeight">0.000</span> kg
+
+        </div>
+
+    </div>
 
     <label>Đơn giá (đ/kg)</label>
 
@@ -178,17 +276,35 @@ h2{
 
         Thành tiền:
 
-        <div class="money" id="money">0 đ</div>
+        <div class="money" id="money">
+
+            0 đ
+
+        </div>
 
     </div>
 
 </div>
 
+</div>
+
+<button class="btn btn-download" onclick="downloadImage()">
+
+📷 Tải ảnh kết quả
+
+</button>
+
+<button class="btn btn-reset" onclick="resetForm()">
+
+🗑️ Làm mới phiếu cân
+
+</button>
+
 <script>
 
 const columnsDiv = document.getElementById("columns");
 
-function createColumn() {
+function createColumn(){
 
     const col = document.createElement("div");
 
@@ -200,15 +316,15 @@ function createColumn() {
 
     col.appendChild(title);
 
-    for (let i = 0; i < 5; i++) {
+    for(let i=0;i<5;i++){
 
         const input = document.createElement("input");
 
         input.type = "number";
 
-        input.step = "0.1";
+        input.step = "0.001";
 
-        input.addEventListener("input", () => {
+        input.addEventListener("input",()=>{
 
             updateTotals();
 
@@ -224,7 +340,7 @@ function createColumn() {
 
     total.className = "col-total";
 
-    total.innerText = "0 kg";
+    total.innerText = "0.000 kg";
 
     col.appendChild(total);
 
@@ -232,23 +348,37 @@ function createColumn() {
 
 }
 
-function updateTotals() {
+function updateTotals(){
 
     let grandTotal = 0;
 
-    document.querySelectorAll(".column").forEach(col => {
+    const unit =
+
+        document.getElementById("unit").value;
+
+    document.querySelectorAll(".column").forEach(col=>{
 
         let colTotal = 0;
 
-        col.querySelectorAll("input").forEach(input => {
+        col.querySelectorAll("input").forEach(input=>{
 
-            colTotal += Number(input.value) || 0;
+            let value =
+
+                Number(input.value) || 0;
+
+            if(unit === "g"){
+
+                value = value / 1000;
+
+            }
+
+            colTotal += value;
 
         });
 
         col.querySelector(".col-total").innerText =
 
-            colTotal.toFixed(1) + " kg";
+            colTotal.toFixed(3) + " kg";
 
         grandTotal += colTotal;
 
@@ -256,17 +386,31 @@ function updateTotals() {
 
     document.getElementById("grandTotal").innerText =
 
-        grandTotal.toFixed(1);
+        grandTotal.toFixed(3);
 
-    const tare =
+    const tareGram =
 
         Number(document.getElementById("tare").value) || 0;
+
+    const tareKg =
+
+        tareGram / 1000;
+
+    const netWeight =
+
+        grandTotal - tareKg;
+
+    document.getElementById("netWeight").innerText =
+
+        netWeight.toFixed(3);
 
     const price =
 
         Number(document.getElementById("price").value) || 0;
 
-    const money = (grandTotal - tare) * price;
+    const money =
+
+        netWeight * price;
 
     document.getElementById("money").innerText =
 
@@ -274,23 +418,33 @@ function updateTotals() {
 
 }
 
-function checkAddColumn() {
+function checkAddColumn(){
 
-    const cols = document.querySelectorAll(".column");
+    const cols =
 
-    const lastCol = cols[cols.length - 1];
+        document.querySelectorAll(".column");
 
-    const inputs = lastCol.querySelectorAll("input");
+    const lastCol =
+
+        cols[cols.length - 1];
+
+    const inputs =
+
+        lastCol.querySelectorAll("input");
 
     let filled = true;
 
-    inputs.forEach(i => {
+    inputs.forEach(input=>{
 
-        if (i.value === "") filled = false;
+        if(input.value === ""){
+
+            filled = false;
+
+        }
 
     });
 
-    if (filled) {
+    if(filled){
 
         createColumn();
 
@@ -298,13 +452,69 @@ function checkAddColumn() {
 
 }
 
-document.getElementById("tare")
+function downloadImage(){
 
-.addEventListener("input", updateTotals);
+    html2canvas(
 
-document.getElementById("price")
+        document.getElementById("capture"),
 
-.addEventListener("input", updateTotals);
+        {scale:2}
+
+    ).then(canvas=>{
+
+        const link =
+
+            document.createElement("a");
+
+        link.download =
+
+            "can-nong-san.png";
+
+        link.href =
+
+            canvas.toDataURL("image/png");
+
+        link.click();
+
+    });
+
+}
+
+function resetForm(){
+
+    if(confirm("Xóa toàn bộ dữ liệu hiện tại?")){
+
+        columnsDiv.innerHTML = "";
+
+        createColumn();
+
+        document.getElementById("tare").value = 0;
+
+        document.getElementById("price").value = 0;
+
+        updateTotals();
+
+    }
+
+}
+
+document
+
+.getElementById("tare")
+
+.addEventListener("input",updateTotals);
+
+document
+
+.getElementById("price")
+
+.addEventListener("input",updateTotals);
+
+document
+
+.getElementById("unit")
+
+.addEventListener("change",updateTotals);
 
 createColumn();
 
