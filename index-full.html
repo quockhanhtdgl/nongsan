@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cân Nông Sản Pro</title>
+<style>
+body{font-family:Arial;margin:15px;background:#f4f4f4}
+.card{background:#fff;padding:12px;border-radius:10px;margin-bottom:12px}
+.hidden{display:none}
+button,select,input{padding:8px}
+#columns{display:flex;gap:10px;overflow:auto}
+.column{background:#fff;padding:10px;border-radius:10px;min-width:120px}
+.column input{width:100%;box-sizing:border-box;margin:4px 0}
+.money{font-size:30px;font-weight:bold;color:red}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>📦 Cân Nông Sản</h2>
+<label>Chế độ:</label>
+<select id="mode">
+<option value="simple">Đơn giản</option>
+<option value="full">Đầy đủ</option>
+</select>
+</div>
+
+<div class="card">
+<label>Đơn vị:</label>
+<select id="unit">
+<option value="kg">Kg</option>
+<option value="g">Gam</option>
+</select>
+</div>
+
+<div id="columns"></div>
+
+<div class="card">
+<p>Tổng khối lượng: <b id="grandTotal">0.000</b> kg</p>
+<p>Trừ bì (gam): <input id="tare" type="number" value="0"></p>
+<p>Khối lượng sau trừ bì: <b id="netWeight">0.000</b> kg</p>
+
+<div id="advanced" class="hidden">
+<p>Ngày giờ: <span id="time"></span></p>
+<p>Số cột hiện có: <span id="colCount">1</span></p>
+</div>
+
+<p>Đơn giá: <input id="price" type="number" value="0"></p>
+<div class="money" id="money">0 đ</div>
+</div>
+
+<div class="card">
+<button onclick="undo()">↩ Hoàn tác</button>
+<button onclick="saveBackup()">💾 Sao lưu</button>
+<button onclick="resetData()">🗑 Xóa</button>
+</div>
+
+<script>
+let history=[];
+
+function saveState(){
+ history.push(document.getElementById('columns').innerHTML);
+ if(history.length>20) history.shift();
+ localStorage.setItem('can_data',document.getElementById('columns').innerHTML);
+}
+
+function createColumn(){
+ const wrap=document.createElement('div');
+ wrap.className='column';
+ wrap.innerHTML='<h4>Cột '+(document.querySelectorAll('.column').length+1)+'</h4>';
+
+ for(let i=0;i<5;i++){
+   const inp=document.createElement('input');
+   inp.type='number';
+   inp.oninput=()=>{
+      update();
+      autoAdd();
+      saveState();
+   };
+   wrap.appendChild(inp);
+ }
+
+ const total=document.createElement('div');
+ total.className='total';
+ total.innerHTML='0';
+ wrap.appendChild(total);
+
+ document.getElementById('columns').appendChild(wrap);
+ update();
+}
+
+function autoAdd(){
+ const last=document.querySelector('.column:last-child');
+ let ok=true;
+ last.querySelectorAll('input').forEach(i=>{
+   if(i.value==='') ok=false;
+ });
+ if(ok) createColumn();
+}
+
+function update(){
+ let grand=0;
+ const unit=document.getElementById('unit').value;
+
+ document.querySelectorAll('.column').forEach(c=>{
+   let t=0;
+   c.querySelectorAll('input').forEach(i=>{
+      let v=parseFloat(i.value)||0;
+      if(unit==='g') v/=1000;
+      t+=v;
+   });
+   c.querySelector('.total').innerText=t.toFixed(3)+' kg';
+   grand+=t;
+ });
+
+ document.getElementById('grandTotal').innerText=grand.toFixed(3);
+
+ const tare=(parseFloat(document.getElementById('tare').value)||0)/1000;
+ const net=grand-tare;
+
+ document.getElementById('netWeight').innerText=net.toFixed(3);
+
+ const price=parseFloat(document.getElementById('price').value)||0;
+ document.getElementById('money').innerText=(net*price).toLocaleString('vi-VN')+' đ';
+
+ document.getElementById('colCount').innerText=document.querySelectorAll('.column').length;
+}
+
+function undo(){
+ if(history.length<2) return;
+ history.pop();
+ document.getElementById('columns').innerHTML=history.pop();
+ attachEvents();
+ update();
+}
+
+function attachEvents(){
+ document.querySelectorAll('.column input').forEach(i=>{
+   i.oninput=()=>{update();autoAdd();saveState();};
+ });
+}
+
+function saveBackup(){
+ const data={
+   time:new Date().toLocaleString(),
+   total:document.getElementById('grandTotal').innerText,
+   money:document.getElementById('money').innerText
+ };
+ const a=document.createElement('a');
+ a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
+ a.download='phieu-can.json';
+ a.click();
+}
+
+function resetData(){
+ const x=prompt('Nhập XOA để xác nhận');
+ if(x==='XOA'){
+   localStorage.clear();
+   location.reload();
+ }
+}
+
+document.getElementById('mode').onchange=function(){
+ document.getElementById('advanced').classList.toggle('hidden',this.value!=='full');
+};
+
+document.getElementById('tare').oninput=update;
+document.getElementById('price').oninput=update;
+document.getElementById('unit').onchange=update;
+
+document.getElementById('time').innerText=new Date().toLocaleString();
+
+createColumn();
+</script>
+
+</body>
+</html>
