@@ -21,7 +21,7 @@ button{padding:10px;border:none;border-radius:8px;margin:4px}
 </head>
 <body>
 <div id="capture" class="card">
-<h2>📦 Cân Nông Tính Sản</h2>
+<h2>📦 Cân Nông Sản</h2>
 <select id="unit"><option value="kg">Kg</option><option value="g">Gam</option></select>
 <div id="columns"></div>
 <p>Tổng: <span id="grand">0.000</span> kg</p>
@@ -104,7 +104,8 @@ function renderHistory(){
   let h='<b>'+t.date+'</b><br>';
   t.columns.forEach((c,n)=>{h+='<b>Cột '+(n+1)+'</b><br>'+c.join('<br>')+'<br><br>'});
   h+='<hr><b>Tổng:</b> '+t.total+' kg<br><b>Trừ bì:</b> '+t.tare+' g<br><b>Sau trừ bì:</b> '+t.net+' kg<br><b>Đơn giá:</b> '+Number(t.price).toLocaleString('vi-VN')+' đ<br><div class="money">'+t.money+'</div>';
-  h+='<button onclick="downloadSaved('+i+')">📷 Tải ảnh</button>';
+  h+='<button onclick="downloadSaved('+i+')">📷 Tải ảnh</button> ';
+  h+='<button onclick="deleteTicket('+i+')">🗑️ Xóa</button>';
   d.innerHTML=h; historyEl.appendChild(d);
  });
 }
@@ -113,6 +114,15 @@ function downloadCurrent(){
 }
 function downloadSaved(i){
  html2canvas(document.getElementById('saved'+i),{scale:4}).then(c=>{let a=document.createElement('a');a.href=c.toDataURL();a.download='phieu-luu.png';a.click();});
+}
+
+function deleteTicket(i){
+ const ans=(prompt('Xóa phiếu này? Nhập Y để xác nhận, N để hủy','N')||'N').trim().toUpperCase();
+ if(ans!=='Y') return;
+ let t=JSON.parse(localStorage.getItem('tickets')||'[]');
+ t.splice(i,1);
+ localStorage.setItem('tickets',JSON.stringify(t));
+ renderHistory();
 }
 function exportJSON(){
  const data=localStorage.getItem('tickets')||'[]';
