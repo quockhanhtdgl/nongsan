@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cân Nông Sản Nâng Cao</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+body{font-family:Arial;background:#f3f3f3;margin:10px}
+.card{background:#fff;padding:12px;border-radius:12px;margin-bottom:10px}
+#columns{display:flex;gap:10px;overflow:auto}
+.column{background:#fff;padding:10px;border-radius:10px;min-width:120px}
+.column input{width:100%;padding:8px;margin:3px 0;box-sizing:border-box}
+.big{font-size:30px;font-weight:bold;color:#c00}
+button{padding:10px;border:none;border-radius:8px;margin:3px}
+</style>
+</head>
+<body>
+<div id="capture">
+<div class="card">
+<h2>📦 Cân Nông Sản Nâng Cao</h2>
+Tên khách: <input id="customer"><br><br>
+Biển số xe: <input id="vehicle"><br><br>
+Đơn vị:
+<select id="unit"><option value="kg">Kg</option><option value="g">Gam</option></select>
+<span style="float:right" id="time"></span>
+</div>
+
+<div id="columns"></div>
+
+<div class="card">
+Tổng khối lượng: <b id="grand">0.000</b> kg<br><br>
+Trừ bì (gam): <input id="tare" type="number" value="0"><br><br>
+Sau trừ bì: <b id="net">0.000</b> kg<br><br>
+Đơn giá: <input id="price" type="number" value="0"><br><br>
+Thành tiền:
+<div class="big" id="money">0 đ</div>
+</div>
+</div>
+
+<div class="card">
+<button onclick="downloadPNG()">📷 Xuất PNG</button>
+<button onclick="saveTicket()">💾 Lưu phiếu</button>
+<button onclick="exportCSV()">📊 Xuất CSV</button>
+<button onclick="newTicket()">🗑 Phiếu mới</button>
+</div>
+
+<div class="card">
+<h3>Lịch sử phiếu</h3>
+<div id="history"></div>
+</div>
+
+<script>
+let undoStack=[];
+
+function createColumn(){
+ let c=document.createElement('div');
+ c.className='column';
+ c.innerHTML='<h4>Cột '+(document.querySelectorAll(".column").length+1)+'</h4>';
+ for(let i=0;i<5;i++){
+   let inp=document.createElement('input');
+   inp.type='number';
+   inp.oninput=()=>{update();autoAdd();saveAuto();};
+   c.appendChild(inp);
+ }
+ let t=document.createElement('div');
+ t.className='total';
+ c.appendChild(t);
+ document.getElementById('columns').appendChild(c);
+}
+
+function autoAdd(){
+ let last=document.querySelector('.column:last-child');
+ let ok=true;
+ last.querySelectorAll('input').forEach(i=>{if(i.value==='')ok=false;});
+ if(ok) createColumn();
+}
+
+function update(){
+ let total=0;
+ let unit=document.getElementById('unit').value;
+
+ document.querySelectorAll('.column').forEach(col=>{
+   let ct=0;
+   col.querySelectorAll('input').forEach(i=>{
+      let v=parseFloat(i.value)||0;
+      if(unit==='g')v/=1000;
+      ct+=v;
+   });
+   col.querySelector('.total').innerHTML='<b>'+ct.toFixed(3)+' kg</b>';
+   total+=ct;
+ });
+
+ document.getElementById('grand').innerText=total.toFixed(3);
+
+ let net=total-((parseFloat(tare.value)||0)/1000);
+ document.getElementById('net').innerText=net.toFixed(3);
+
+ let money=net*(parseFloat(price.value)||0);
+ document.getElementById('money').innerText=money.toLocaleString('vi-VN')+' đ';
+}
+
+function saveAuto(){
+ localStorage.setItem('auto_ticket',document.body.innerHTML);
+}
+
+function saveTicket(){
+ let arr=JSON.parse(localStorage.getItem('tickets')||'[]');
+ arr.unshift({
+   time:new Date().toLocaleString(),
+   customer:customer.value,
+   vehicle:vehicle.value,
+   kg:net.innerText,
+   money:document.getElementById('money').innerText
+ });
+ localStorage.setItem('tickets',JSON.stringify(arr));
+ loadHistory();
+ alert('Đã lưu phiếu');
+}
+
+function loadHistory(){
+ let arr=JSON.parse(localStorage.getItem('tickets')||'[]');
+ history.innerHTML=arr.slice(0,20).map(x=>
+   '<div>'+x.time+' | '+x.customer+' | '+x.kg+'kg | '+x.money+'</div>'
+ ).join('');
+}
+
+function downloadPNG(){
+ html2canvas(document.getElementById('capture'),{scale:2}).then(canvas=>{
+   let a=document.createElement('a');
+   a.download='phieu-can.png';
+   a.href=canvas.toDataURL();
+   a.click();
+ });
+}
+
+function exportCSV(){
+ let csv='Khach,BienSo,Kg,Tien\n';
+ csv+=customer.value+','+vehicle.value+','+net.innerText+','+money.innerText;
+ let a=document.createElement('a');
+ a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+ a.download='phieu-can.csv';
+ a.click();
+}
+
+function newTicket(){
+ if(prompt('Nhập XOA')==='XOA'){
+   location.reload();
+ }
+}
+
+tare.oninput=update;
+price.oninput=update;
+unit.onchange=update;
+
+document.getElementById('time').innerText=new Date().toLocaleString();
+createColumn();
+loadHistory();
+</script>
+</body>
+</html>
