@@ -1,57 +1,315 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script type="text/javascript" src="utils.js"></script>
-    <script type="text/javascript" src="helper.js"></script>
-    <script type="text/javascript" src="int64.js"></script>
-    <script type="text/javascript" src="stages.js"></script>
-    <script type="text/javascript" src="offsets.js"></script>
-    <script type="text/javascript" src="pwn.js"></script>
-    <script>
-        var loc = window.location;
-        var wsProtocol = loc.protocol === 'https:' ? 'wss:' : 'ws:';
-        var wsURL = wsProtocol + '//' + loc.host + '/WebSocket';
-        try {
-            var ws = new WebSocket(wsURL);
-            ws.onopen = function() {
-                ws.send("totally-not-spyware-v2");
-            };
-        } catch (error) {
-            void(0);
-        }
-    </script>
-</head>
-<body>
-    <p id="log">
-    </p>
-    <script>
-    window.onerror = function(message, source, lineno, colno, error) {
-        try {
-            let ErrorName = error.name;
-        } catch (ee) {
-            document.getElementById("log").innerHTML += "<h1 style='color:red'>This browser is not supported!</h1>";
-            return true;
-        }
-        if ('InvalidStateError' == error.name) {
-            location.reload();
-        } else if ('TypeError' == error.name) {
-            location.reload();
-        } else {
-            document.getElementById("log").innerHTML += "<h1 style='color:red'>"+message+" @ "+lineno+"</h1>";
-            try {
-                ws.send(""+message+" @ "+lineno);
-            } catch (error) {
-                void(0);
-            }
-        }
-        return true;
-    };
-    </script>
 
-    <button onclick="pwn();">pwn</button>
-    
+<html lang="vi">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cân Nông Sản</title>
+
+<style>
+
+body{
+
+    font-family: Arial, sans-serif;
+
+    margin:15px;
+
+    background:#f5f5f5;
+
+}
+
+h2{
+
+    text-align:center;
+
+}
+
+#columns{
+
+    display:flex;
+
+    gap:10px;
+
+    overflow-x:auto;
+
+    padding-bottom:10px;
+
+}
+
+.column{
+
+    background:white;
+
+    padding:10px;
+
+    border-radius:10px;
+
+    min-width:100px;
+
+    box-shadow:0 0 5px rgba(0,0,0,0.1);
+
+}
+
+.column h3{
+
+    text-align:center;
+
+    margin:0 0 10px;
+
+}
+
+.column input{
+
+    width:100%;
+
+    box-sizing:border-box;
+
+    margin-bottom:5px;
+
+    padding:8px;
+
+    text-align:center;
+
+    font-size:16px;
+
+}
+
+.col-total{
+
+    text-align:center;
+
+    font-weight:bold;
+
+    color:green;
+
+    margin-top:5px;
+
+}
+
+.summary{
+
+    background:white;
+
+    padding:15px;
+
+    border-radius:10px;
+
+    margin-top:15px;
+
+    box-shadow:0 0 5px rgba(0,0,0,0.1);
+
+}
+
+.summary label{
+
+    display:block;
+
+    margin-top:10px;
+
+}
+
+.summary input{
+
+    width:100%;
+
+    padding:10px;
+
+    font-size:18px;
+
+    box-sizing:border-box;
+
+}
+
+.total{
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    color:blue;
+
+}
+
+.money{
+
+    font-size:32px;
+
+    font-weight:bold;
+
+    color:red;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>📦 Cân Nông Sản</h2>
+
+<div id="columns"></div>
+
+<div class="summary">
+
+    <div>
+
+        Tổng khối lượng:
+
+        <span class="total" id="grandTotal">0</span> kg
+
+    </div>
+
+    <label>Trừ bì (kg)</label>
+
+    <input type="number" id="tare" value="0">
+
+    <label>Đơn giá (đ/kg)</label>
+
+    <input type="number" id="price" value="0">
+
+    <hr>
+
+    <div>
+
+        Thành tiền:
+
+        <div class="money" id="money">0 đ</div>
+
+    </div>
+
+</div>
+
+<script>
+
+const columnsDiv = document.getElementById("columns");
+
+function createColumn() {
+
+    const col = document.createElement("div");
+
+    col.className = "column";
+
+    const title = document.createElement("h3");
+
+    title.innerText = "Cột " + (columnsDiv.children.length + 1);
+
+    col.appendChild(title);
+
+    for (let i = 0; i < 5; i++) {
+
+        const input = document.createElement("input");
+
+        input.type = "number";
+
+        input.step = "0.1";
+
+        input.addEventListener("input", () => {
+
+            updateTotals();
+
+            checkAddColumn();
+
+        });
+
+        col.appendChild(input);
+
+    }
+
+    const total = document.createElement("div");
+
+    total.className = "col-total";
+
+    total.innerText = "0 kg";
+
+    col.appendChild(total);
+
+    columnsDiv.appendChild(col);
+
+}
+
+function updateTotals() {
+
+    let grandTotal = 0;
+
+    document.querySelectorAll(".column").forEach(col => {
+
+        let colTotal = 0;
+
+        col.querySelectorAll("input").forEach(input => {
+
+            colTotal += Number(input.value) || 0;
+
+        });
+
+        col.querySelector(".col-total").innerText =
+
+            colTotal.toFixed(1) + " kg";
+
+        grandTotal += colTotal;
+
+    });
+
+    document.getElementById("grandTotal").innerText =
+
+        grandTotal.toFixed(1);
+
+    const tare =
+
+        Number(document.getElementById("tare").value) || 0;
+
+    const price =
+
+        Number(document.getElementById("price").value) || 0;
+
+    const money = (grandTotal - tare) * price;
+
+    document.getElementById("money").innerText =
+
+        money.toLocaleString("vi-VN") + " đ";
+
+}
+
+function checkAddColumn() {
+
+    const cols = document.querySelectorAll(".column");
+
+    const lastCol = cols[cols.length - 1];
+
+    const inputs = lastCol.querySelectorAll("input");
+
+    let filled = true;
+
+    inputs.forEach(i => {
+
+        if (i.value === "") filled = false;
+
+    });
+
+    if (filled) {
+
+        createColumn();
+
+    }
+
+}
+
+document.getElementById("tare")
+
+.addEventListener("input", updateTotals);
+
+document.getElementById("price")
+
+.addEventListener("input", updateTotals);
+
+createColumn();
+
+</script>
+
 </body>
+
 </html>
