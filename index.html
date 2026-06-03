@@ -47,6 +47,12 @@ button{padding:10px;border:none;border-radius:8px;margin:4px}
 <div id="history"></div>
 </div>
 
+<div class="card">
+<h3>🗑️ Thùng rác</h3>
+<button onclick="emptyTrash()">🔥 Xóa vĩnh viễn Thùng rác</button>
+<div id="trashHistory"></div>
+</div>
+
 <script>
 const columns=document.getElementById('columns');
 
@@ -106,7 +112,7 @@ function renderHistory(){
   t.columns.forEach((c,n)=>{h+='<b>Cột '+(n+1)+'</b><br>'+c.join('<br>')+'<br><br>'});
   h+='<hr><b>Tổng:</b> '+t.total+' kg<br><b>Trừ bì:</b> '+t.tare+' g<br><b>Sau trừ bì:</b> '+t.net+' kg<br><b>Đơn giá:</b> '+Number(t.price).toLocaleString('vi-VN')+' đ<br><div class="money">'+t.money+'</div>';
   h+='<button onclick="downloadSaved('+i+')">📷 Tải ảnh</button> ';
-  h+='<button onclick="deleteTicket('+i+')">🗑️ Xóa</button>';
+  h+='<button onclick="moveToTrash('+i+')">🗑️ Chuyển vào Thùng rác</button>';
   d.innerHTML=h; historyEl.appendChild(d);
  });
 }
@@ -117,21 +123,55 @@ function downloadSaved(i){
  html2canvas(document.getElementById('saved'+i),{scale:4}).then(c=>{let a=document.createElement('a');a.href=c.toDataURL();a.download='phieu-luu.png';a.click();});
 }
 
-function deleteTicket(i){
- const ans=(prompt('Xóa phiếu này? Nhập Y để xác nhận, N để hủy','N')||'N').trim().toUpperCase();
- if(ans!=='Y') return;
- let t=JSON.parse(localStorage.getItem('tickets')||'[]');
- t.splice(i,1);
- localStorage.setItem('tickets',JSON.stringify(t));
+const ADMIN_PASSWORD='944151';
+
+function moveToTrash(i){
+ const ans=(prompt('Xóa phiếu thường → nhập "Xác Nhận"','')||'').trim();
+ if(ans!=='Xác Nhận') return;
+ let tickets=JSON.parse(localStorage.getItem('tickets')||'[]');
+ let trash=JSON.parse(localStorage.getItem('trashTickets')||'[]');
+ trash.unshift(tickets[i]);
+ tickets.splice(i,1);
+ localStorage.setItem('tickets',JSON.stringify(tickets));
+ localStorage.setItem('trashTickets',JSON.stringify(trash));
  renderHistory();
+ renderTrash();
 }
 
 function clearAllTickets(){
- const ans=(prompt('Nhập "Xác Nhận" để xóa toàn bộ phiếu đã lưu','')||'').trim();
- if(ans!=='Xác Nhận') return;
+ const pass=(prompt('Nhập mật khẩu quản trị để xóa toàn bộ phiếu','')||'').trim();
+ if(pass!==ADMIN_PASSWORD){ alert('Sai mật khẩu'); return; }
+ let tickets=JSON.parse(localStorage.getItem('tickets')||'[]');
+ let trash=JSON.parse(localStorage.getItem('trashTickets')||'[]');
+ trash=[...tickets,...trash];
+ localStorage.setItem('trashTickets',JSON.stringify(trash));
  localStorage.removeItem('tickets');
  renderHistory();
- alert('Đã xóa toàn bộ phiếu đã lưu');
+ renderTrash();
+ alert('Đã chuyển toàn bộ phiếu vào thùng rác');
+}
+
+function emptyTrash(){
+ const pass=(prompt('Nhập mật khẩu quản trị','')||'').trim();
+ if(pass!==ADMIN_PASSWORD){ alert('Sai mật khẩu'); return; }
+ const confirmText=(prompt('Nhập Xác Nhận để xóa vĩnh viễn Thùng rác','')||'').trim();
+ if(confirmText!=='Xác Nhận') return;
+ localStorage.removeItem('trashTickets');
+ renderTrash();
+ alert('Đã xóa vĩnh viễn thùng rác');
+}
+
+function renderTrash(){
+ let trash=JSON.parse(localStorage.getItem('trashTickets')||'[]');
+ let el=document.getElementById('trashHistory');
+ if(!el) return;
+ el.innerHTML='';
+ trash.forEach((t,i)=>{
+   let d=document.createElement('div');
+   d.className='saved';
+   d.innerHTML='<b>'+t.date+'</b><br><b>Tổng:</b> '+t.total+' kg <br><div class="money">'+t.money+'</div>';
+   el.appendChild(d);
+ });
 }
 
 function exportJSON(){
@@ -154,7 +194,7 @@ function importJSON(e){
  r.readAsText(f);
 }
 unit.onchange=update; tare.oninput=update; price.oninput=update;
-createColumn(); update(); renderHistory();
+createColumn(); update(); renderHistory(); renderTrash();
 </script>
 </body>
 </html>
