@@ -21,7 +21,7 @@ button{padding:10px;border:none;border-radius:8px;margin:4px}
 </head>
 <body>
 <div id="capture" class="card">
-<h2>📦 Cân Tính Tiền Nông Sản</h2>
+<h2>📦 Cân Nông Sản</h2>
 <select id="unit"><option value="kg">Kg</option><option value="g">Gam</option></select>
 <div id="columns"></div>
 <p>Tổng: <span id="grand">0.000</span> kg</p>
@@ -59,7 +59,7 @@ const columns=document.getElementById('columns');
 function createColumn(){
  let c=document.createElement('div');
  c.className='column';
- c.innerHTML='<h4>Cột '+(columns.children.length+1)+"</h4><div class=\'coltotal big\'>0.000</div>";'
+ c.innerHTML='<h4>Cột '+(columns.children.length+1)+'</h4><div class="big coltotal">0.000</div>';
  for(let i=0;i<5;i++){
   let inp=document.createElement('input');
   inp.type='number'; inp.inputMode='decimal';
@@ -77,15 +77,15 @@ function autoAdd(){
 function update(){
  let total=0;
  document.querySelectorAll('.column').forEach(col=>{
-  let csum=0;
+  let colTotal=0;
   col.querySelectorAll('input').forEach(i=>{
    let v=parseFloat(i.value)||0;
    if(document.getElementById('unit').value==='g') v/=1000;
    total+=v;
-   csum+=v;
+   colTotal+=v;
   });
-  let ct=col.querySelector('.coltotal');
-  if(ct) ct.textContent=csum.toFixed(3);
+  const t=col.querySelector('.coltotal');
+  if(t) t.textContent=colTotal.toFixed(3);
  });
  grand.textContent=total.toFixed(3);
  let netv=total-((parseFloat(tare.value)||0)/1000);
@@ -95,13 +95,8 @@ function update(){
 function getData(){
  let cols=[];
  document.querySelectorAll('.column').forEach(c=>{
-  let sum=0;
-  c.querySelectorAll('input').forEach(i=>{
-   let v=parseFloat(i.value)||0;
-   if(document.getElementById('unit').value==='g') v/=1000;
-   sum+=v;
-  });
-  if(sum>0) cols.push(sum.toFixed(3));
+  let a=[]; c.querySelectorAll('input').forEach(i=>{if(i.value)a.push(i.value)});
+  if(a.length) cols.push(a);
  });
  return {date:new Date().toLocaleString(),columns:cols,total:grand.textContent,net:net.textContent,tare:tare.value||0,price:price.value||0,money:money.textContent};
 }
@@ -120,7 +115,7 @@ function renderHistory(){
   let d=document.createElement('div');
   d.className='saved'; d.id='saved'+i;
   let h='<b>'+t.date+'</b><br>';
-  t.columns.forEach((c,n)=>{h+='<b>Cột '+(n+1)+': '+c+' kg</b><br>'});
+  t.columns.forEach((c,n)=>{h+='<b>Cột '+(n+1)+'</b><br>'+c.join('<br>')+'<br><br>'});
   h+='<hr><b>Tổng:</b> '+t.total+' kg<br><b>Trừ bì:</b> '+t.tare+' g<br><b>Sau trừ bì:</b> '+t.net+' kg<br><b>Đơn giá:</b> '+Number(t.price).toLocaleString('vi-VN')+' đ<br><div class="money">'+t.money+'</div>';
   h+='<button onclick="downloadSaved('+i+')">📷 Tải ảnh</button> ';
   h+='<button onclick="moveToTrash('+i+')">🗑️ Chuyển vào Thùng rác</button>';
