@@ -93,6 +93,7 @@
             cursor: pointer;
         }
         
+        /* Ô dán dãy số nhanh từ Gemini & Nút copy câu lệnh */
         .paste-ai-box {
             background: var(--box-bg);
             border: 1.5px solid var(--primary-btn);
@@ -146,6 +147,7 @@
             cursor: pointer;
         }
 
+        /* Khu vực chứa các cột nhóm nằm ngang */
         .columns-container {
             display: flex;
             gap: 10px;
@@ -193,7 +195,6 @@
         }
         .input-code:focus {
             border-color: #007aff;
-            background-color: #eef6ff;
         }
         
         .group-total-box {
@@ -306,7 +307,7 @@
 
 <div style="padding: 0 12px; max-width: 100%;">
     <div class="btn-group">
-        <button class="btn-zalo" onclick="xuatAnhVaGuiZalo()">📤 Ảnh & Gửi Zalo</button>
+        <button class="btn-zalo" onclick="xuatAnhVaGuiZalo()">📤 Xuất Ảnh & Gửi Zalo</button>
         <button class="btn-reset" onclick="xoaTatCa()">🗑️ Xóa Tất Cả</button>
     </div>
 </div>
@@ -317,6 +318,7 @@
     const truBiInput = document.getElementById('input-trubi');
     const donGiaInput = document.getElementById('input-dongia');
 
+    // Copy câu lệnh mẫu cho Gemini
     function copyCauLenhGemini() {
         const cauLenh = "Hãy đọc tất cả các con số ghi trong ảnh này. Chỉ trích xuất ra các con số và trả về đúng một dãy số cách nhau bằng dấu phẩy, ví dụ: 120, 150, 200, 250. TUYỆT ĐỐI không viết thêm bất kỳ chữ cái, lời giải thích hay ký tự nào khác ngoài dãy số.";
         
@@ -373,28 +375,6 @@
         }
         container.innerHTML = html;
         taiDuLieuCu();
-    }
-
-    // Bắt sự kiện phím Enter hoặc phím Next trên bàn phím ảo điện thoại
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.target.classList.contains('input-code')) {
-            e.preventDefault();
-            chuyenSangOtiepTheo(e.target);
-        }
-    });
-
-    // Hỗ trợ tự động nhảy ô mượt mà khi bấm Enter hoặc xác nhận trên mobile
-    function chuyenSangOtiepTheo(currentInput) {
-        const visibleInputs = Array.from(document.querySelectorAll('.input-code')).filter(input => {
-            return !input.closest('.hidden-group');
-        });
-        
-        const currentIndex = visibleInputs.indexOf(currentInput);
-        if (currentIndex !== -1 && currentIndex + 1 < visibleInputs.length) {
-            const nextInput = visibleInputs[currentIndex + 1];
-            nextInput.focus();
-            nextInput.select(); // Tự động chọn sẵn nội dung trong ô tiếp theo để gõ đè
-        }
     }
 
     function xuLyDanDaySo() {
@@ -501,15 +481,6 @@
         }
     }
 
-    document.body.addEventListener('input', langNgheNhap);
-
-    // Tự động chọn sẵn toàn bộ text trong ô khi chạm vào để nhập cho nhanh
-    document.addEventListener('focusin', function(e) {
-        if (e.target.classList.contains('input-code')) {
-            setTimeout(() => e.target.select(), 50);
-        }
-    });
-
     function taiDuLieuCu() {
         const allInputs = document.querySelectorAll('.input-code');
         allInputs.forEach(input => {
@@ -528,6 +499,8 @@
 
         tinhToanChung();
     }
+
+    document.body.addEventListener('input', langNgheNhap);
 
     async function xuatAnhVaGuiZalo() {
         capNhatThoiGian();
