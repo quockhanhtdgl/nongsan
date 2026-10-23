@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tính Toán Mã Hàng</title>
 
-    <!-- Cấu hình PWA (Chạy dạng App Standalone, ẩn nút reload) -->
+    <!-- Cấu hình PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,17 +15,48 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
+        :root {
+            --bg-color: #f2f2f7;
+            --card-bg: #ffffff;
+            --text-color: #1c1c1e;
+            --sub-text: #3a3a3c;
+            --border-color: #c7c7cc;
+            --input-bg: #ffffff;
+            --box-bg: #f9f9fb;
+            --footer-bg: #e5f1ff;
+            --footer-border: #b3d7ff;
+            --footer-text: #004085;
+            --summary-text: #003366;
+            --primary-btn: #0068ff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1c1c1e;
+            --card-bg: #2c2c2e;
+            --text-color: #f2f2f7;
+            --sub-text: #aeaeb2;
+            --border-color: #38383a;
+            --input-bg: #3a3a3c;
+            --box-bg: #242426;
+            --footer-bg: #1a2639;
+            --footer-border: #2a4365;
+            --footer-text: #90cdf4;
+            --summary-text: #63b3ed;
+            --primary-btn: #3182ce;
+        }
+
         * {
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         body {
-            background-color: #f2f2f7;
+            background-color: var(--bg-color);
             margin: 0;
             padding: 10px;
         }
         .app-card {
-            background: #ffffff;
+            background: var(--card-bg);
             width: 100%;
             max-width: 100%;
             padding: 12px;
@@ -33,17 +64,33 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             margin-bottom: 20px;
         }
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
         h2 {
-            margin-top: 0;
-            text-align: center;
-            color: #1c1c1e;
+            margin: 0;
+            color: var(--text-color);
             font-size: 18px;
+            flex: 1;
+            text-align: center;
+        }
+        .btn-theme {
+            background: var(--box-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
         }
         
         /* Ô dán dãy số nhanh từ Gemini */
         .paste-ai-box {
-            background: #f0f4ff;
-            border: 1.5px solid #0068ff;
+            background: var(--box-bg);
+            border: 1.5px solid var(--primary-btn);
             padding: 10px;
             border-radius: 12px;
             margin-bottom: 14px;
@@ -52,7 +99,7 @@
             display: block;
             font-size: 13px;
             font-weight: 600;
-            color: #004085;
+            color: var(--footer-text);
             margin-bottom: 6px;
         }
         .paste-row {
@@ -62,14 +109,15 @@
         .paste-row input {
             flex: 1;
             padding: 9px;
-            border: 1px solid #99c2ff;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 14px;
-            background: #fff;
+            background: var(--input-bg);
+            color: var(--text-color);
             outline: none;
         }
         .btn-dien {
-            background-color: #0068ff;
+            background-color: var(--primary-btn);
             color: white;
             border: none;
             padding: 0 14px;
@@ -89,8 +137,8 @@
         }
 
         .section-box {
-            background: #f9f9fb;
-            border: 1px solid #e5e5ea;
+            background: var(--box-bg);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 10px;
             min-width: 140px;
@@ -112,11 +160,12 @@
         .input-code {
             width: 100%;
             padding: 8px;
-            border: 1px solid #c7c7cc;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 15px;
             outline: none;
-            background: #fff;
+            background: var(--input-bg);
+            color: var(--text-color);
             text-align: center;
         }
         .input-code:focus {
@@ -126,9 +175,9 @@
         .group-total-box {
             margin-top: 8px;
             padding-top: 6px;
-            border-top: 1px dashed #c7c7cc;
+            border-top: 1px dashed var(--border-color);
             font-size: 12px;
-            color: #3a3a3c;
+            color: var(--sub-text);
             font-weight: 600;
             text-align: center;
         }
@@ -137,8 +186,8 @@
         }
         
         .footer-calc {
-            background: #e5f1ff;
-            border: 1px solid #b3d7ff;
+            background: var(--footer-bg);
+            border: 1px solid var(--footer-border);
             padding: 14px;
             border-radius: 12px;
             margin-top: 16px;
@@ -150,24 +199,25 @@
             display: block;
             font-size: 13px;
             font-weight: 600;
-            color: #004085;
+            color: var(--footer-text);
             margin-bottom: 4px;
         }
         .footer-field input {
             width: 100%;
             padding: 10px;
-            border: 1px solid #99c2ff;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 16px;
-            background: #fff;
+            background: var(--input-bg);
+            color: var(--text-color);
             outline: none;
         }
         .summary-result {
             font-size: 14px;
-            color: #003366;
+            color: var(--summary-text);
             line-height: 1.6;
             margin-top: 12px;
-            border-top: 1px solid #b3d7ff;
+            border-top: 1px solid var(--footer-border);
             padding-top: 10px;
         }
         .btn-group {
@@ -192,7 +242,10 @@
 <body>
 
 <div class="app-card" id="print-area">
-    <h2>Bảng Nhập Mã Hàng</h2>
+    <div class="header-flex">
+        <h2>Bảng Nhập Mã Hàng</h2>
+        <button class="btn-theme" onclick="toggleTheme()" id="theme-btn">🌙 Tối</button>
+    </div>
 
     <!-- Khung dán chuỗi số từ Gemini -->
     <div class="paste-ai-box">
@@ -218,7 +271,7 @@
         <div class="summary-result" id="ketqua-chung">
             Tổng tất cả các nhóm: <b>0</b><br>
             Sau trừ bì: <b>0</b><br>
-            <b style="font-size: 16px; color: #002244;">Thành tiền: 0 ₫</b>
+            <b style="font-size: 16px;">Thành tiền: 0 ₫</b>
         </div>
     </div>
 </div>
@@ -235,6 +288,22 @@
     const container = document.getElementById('container-nhom');
     const truBiInput = document.getElementById('input-trubi');
     const donGiaInput = document.getElementById('input-dongia');
+
+    // Chế độ Sáng / Tối
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('app_theme', newTheme);
+        document.getElementById('theme-btn').innerText = newTheme === 'dark' ? '☀️ Sáng' : '🌙 Tối';
+    }
+
+    // Khởi tạo giao diện theme khi tải trang
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('app_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-btn').innerText = savedTheme === 'dark' ? '☀️ Sáng' : '🌙 Tối';
+    });
 
     function taoGiaoDien() {
         let html = '';
@@ -260,7 +329,6 @@
         taiDuLieuCu();
     }
 
-    // Xử lý tự động điền dãy số từ ô dán nhanh
     function xuLyDanDaySo() {
         const rawText = document.getElementById('input-paste-ai').value;
         if (!rawText.trim()) {
@@ -268,7 +336,6 @@
             return;
         }
 
-        // Lọc ra tất cả các con số từ đoạn text vừa dán
         const numbers = rawText.match(/-?\d+(\.\d+)?/g);
         if (!numbers || numbers.length === 0) {
             alert("Không tìm thấy dãy số hợp lệ trong đoạn bạn dán!");
@@ -338,7 +405,7 @@
         document.getElementById('ketqua-chung').innerHTML = `
             Tổng tất cả các nhóm: <b>${tongTatCaCacNhom.toLocaleString('vi-VN')}</b><br>
             Sau trừ bì: <b>${sauTruBi.toLocaleString('vi-VN')}</b><br>
-            <b style="font-size: 16px; color: #002244;">Thành tiền: ${thanhTien.toLocaleString('vi-VN')} ₫</b>
+            <b style="font-size: 16px;">Thành tiền: ${thanhTien.toLocaleString('vi-VN')} ₫</b>
         `;
     }
 
@@ -382,11 +449,10 @@
 
     document.body.addEventListener('input', langNgheNhap);
 
-    // Xuất ảnh và gửi qua Zalo
     async function xuatAnhVaGuiZalo() {
         const element = document.getElementById('print-area');
         try {
-            const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
+            const canvas = await html2canvas(element, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg') });
             canvas.toBlob(async (blob) => {
                 const file = new File([blob], "bang-tinh-tien.png", { type: "image/png" });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -410,7 +476,6 @@
         }
     }
 
-    // Xóa tất cả dữ liệu có yêu cầu mật khẩu 944151
     function xoaTatCa() {
         let password = prompt("Nhập mật khẩu để xác nhận xóa toàn bộ dữ liệu:");
         if (password === "944151") {
