@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TinhToan">
 
-    <!-- Thư viện html2canvas để chụp ảnh giao diện -->
+    <!-- Thư viện html2canvas để chụp ảnh xuất file -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -40,6 +40,45 @@
             font-size: 18px;
         }
         
+        /* Ô dán dãy số nhanh từ Gemini */
+        .paste-ai-box {
+            background: #f0f4ff;
+            border: 1.5px solid #0068ff;
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+        }
+        .paste-ai-box label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #004085;
+            margin-bottom: 6px;
+        }
+        .paste-row {
+            display: flex;
+            gap: 6px;
+        }
+        .paste-row input {
+            flex: 1;
+            padding: 9px;
+            border: 1px solid #99c2ff;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fff;
+            outline: none;
+        }
+        .btn-dien {
+            background-color: #0068ff;
+            color: white;
+            border: none;
+            padding: 0 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         /* Khu vực chứa các cột nhóm nằm ngang */
         .columns-container {
             display: flex;
@@ -155,6 +194,15 @@
 <div class="app-card" id="print-area">
     <h2>Bảng Nhập Mã Hàng</h2>
 
+    <!-- Khung dán chuỗi số từ Gemini -->
+    <div class="paste-ai-box">
+        <label for="input-paste-ai">📋 Dán dãy số từ Gemini vào đây:</label>
+        <div class="paste-row">
+            <input type="text" id="input-paste-ai" placeholder="Ví dụ: 120, 130, 140, 150...">
+            <button class="btn-dien" onclick="xuLyDanDaySo()">Điền</button>
+        </div>
+    </div>
+
     <div class="columns-container" id="container-nhom"></div>
 
     <div class="footer-calc">
@@ -212,6 +260,36 @@
         taiDuLieuCu();
     }
 
+    // Xử lý tự động điền dãy số từ ô dán nhanh
+    function xuLyDanDaySo() {
+        const rawText = document.getElementById('input-paste-ai').value;
+        if (!rawText.trim()) {
+            alert("Vui lòng dán dãy số vào ô!");
+            return;
+        }
+
+        // Lọc ra tất cả các con số từ đoạn text vừa dán
+        const numbers = rawText.match(/-?\d+(\.\d+)?/g);
+        if (!numbers || numbers.length === 0) {
+            alert("Không tìm thấy dãy số hợp lệ trong đoạn bạn dán!");
+            return;
+        }
+
+        const allInputs = document.querySelectorAll('.input-code');
+        numbers.forEach((num, index) => {
+            if (allInputs[index]) {
+                allInputs[index].value = num;
+                const nhom = allInputs[index].getAttribute('data-nhom');
+                const idx = allInputs[index].getAttribute('data-idx');
+                localStorage.setItem(`col_code_${nhom}_${idx}`, num);
+            }
+        });
+
+        document.getElementById('input-paste-ai').value = '';
+        tinhToanChung();
+        alert(`Đã tự động điền thành công ${numbers.length} số vào các ô!`);
+    }
+
     function tinhToanChung() {
         let tongTatCaCacNhom = 0;
         let activeNhomMax = 1;
@@ -266,7 +344,7 @@
 
     function langNgheNhap(e) {
         const target = e.target;
-        if (target.tagName === 'INPUT') {
+        if (target.tagName === 'INPUT' && target.id !== 'input-paste-ai') {
             let key = '';
             if (target.classList.contains('input-code')) {
                 key = `col_code_${target.getAttribute('data-nhom')}_${target.getAttribute('data-idx')}`;
@@ -311,8 +389,6 @@
             const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
             canvas.toBlob(async (blob) => {
                 const file = new File([blob], "bang-tinh-tien.png", { type: "image/png" });
-                
-                // Thử dùng Web Share API để chia sẻ trực tiếp (Zalo sẽ hiện trong danh sách)
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({
@@ -320,11 +396,8 @@
                             text: 'Gửi kết quả bảng tính toán',
                             files: [file]
                         });
-                    } catch (err) {
-                        // Người dùng hủy chia sẻ
-                    }
+                    } catch (err) {}
                 } else {
-                    // Fallback: Tải ảnh về máy nếu thiết bị không hỗ trợ chia sẻ file trực tiếp
                     const link = document.createElement('a');
                     link.download = 'ket-qua-tinh-toan.png';
                     link.href = canvas.toDataURL('image/png');
@@ -337,7 +410,7 @@
         }
     }
 
-    // Xóa tất cả dữ liệu có yêu cầu mật khẩu
+    // Xóa tất cả dữ liệu có yêu cầu mật khẩu 944151
     function xoaTatCa() {
         let password = prompt("Nhập mật khẩu để xác nhận xóa toàn bộ dữ liệu:");
         if (password === "944151") {
