@@ -93,7 +93,6 @@
             cursor: pointer;
         }
         
-        /* Ô dán dãy số nhanh từ Gemini & Nút copy câu lệnh */
         .paste-ai-box {
             background: var(--box-bg);
             border: 1.5px solid var(--primary-btn);
@@ -147,7 +146,6 @@
             cursor: pointer;
         }
 
-        /* Khu vực chứa các cột nhóm nằm ngang */
         .columns-container {
             display: flex;
             gap: 10px;
@@ -307,7 +305,7 @@
 
 <div style="padding: 0 12px; max-width: 100%;">
     <div class="btn-group">
-        <button class="btn-zalo" onclick="xuatAnhVaGuiZalo()">📤 Xuất Ảnh & Gửi Zalo</button>
+        <button class="btn-zalo" onclick="xuatAnhVaGuiZalo()">📤 Ảnh & Gửi Zalo</button>
         <button class="btn-reset" onclick="xoaTatCa()">🗑️ Xóa Tất Cả</button>
     </div>
 </div>
@@ -318,7 +316,6 @@
     const truBiInput = document.getElementById('input-trubi');
     const donGiaInput = document.getElementById('input-dongia');
 
-    // Copy câu lệnh mẫu cho Gemini
     function copyCauLenhGemini() {
         const cauLenh = "Hãy đọc tất cả các con số ghi trong ảnh này. Chỉ trích xuất ra các con số và trả về đúng một dãy số cách nhau bằng dấu phẩy, ví dụ: 120, 150, 200, 250. TUYỆT ĐỐI không viết thêm bất kỳ chữ cái, lời giải thích hay ký tự nào khác ngoài dãy số.";
         
@@ -376,6 +373,24 @@
         container.innerHTML = html;
         taiDuLieuCu();
     }
+
+    // Tự động nhảy sang ô tiếp theo khi nhấn Enter hoặc khi đã nhập xong
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target.classList.contains('input-code')) {
+            e.preventDefault();
+            const allInputs = Array.from(document.querySelectorAll('.input-code:not(.hidden-group input)'));
+            // Lọc ra các ô input đang thực sự hiển thị trên màn hình
+            const visibleInputs = Array.from(document.querySelectorAll('.input-code')).filter(input => {
+                return !input.closest('.hidden-group');
+            });
+            
+            const currentIndex = visibleInputs.indexOf(e.target);
+            if (currentIndex !== -1 && currentIndex + 1 < visibleInputs.length) {
+                visibleInputs[currentIndex + 1].focus();
+                visibleInputs[currentIndex + 1].select();
+            }
+        }
+    });
 
     function xuLyDanDaySo() {
         const rawText = document.getElementById('input-paste-ai').value;
