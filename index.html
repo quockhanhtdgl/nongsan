@@ -142,6 +142,12 @@
             align-items: flex-start;
         }
 
+        /* Khi chụp ảnh sẽ bỏ trạng thái cuộn ngang để hiện toàn bộ */
+        .columns-container.exporting {
+            overflow-x: visible !important;
+            flex-wrap: wrap !important;
+        }
+
         .section-box {
             background: var(--box-bg);
             border: 1px solid var(--border-color);
@@ -254,8 +260,8 @@
     </div>
     <div class="time-stamp" id="time-stamp-display">Thời gian: Đang cập nhật...</div>
 
-    <!-- Khung dán chuỗi số từ Gemini -->
-    <div class="paste-ai-box">
+    <!-- Khung dán chuỗi số từ Gemini (Ẩn đi khi xuất ảnh để ảnh gọn gàng chuyên nghiệp) -->
+    <div class="paste-ai-box" id="ai-box-container">
         <label for="input-paste-ai">📋 Dán dãy số từ Gemini vào đây:</label>
         <div class="paste-row">
             <input type="text" id="input-paste-ai" placeholder="Ví dụ: 120, 130, 140, 150...">
@@ -296,7 +302,6 @@
     const truBiInput = document.getElementById('input-trubi');
     const donGiaInput = document.getElementById('input-dongia');
 
-    // Hiển thị thời gian ghi nhận thực tế
     function capNhatThoiGian() {
         const now = new Date();
         const options = { 
@@ -306,7 +311,6 @@
         document.getElementById('time-stamp-display').innerText = "📅 Thời gian: " + now.toLocaleDateString('vi-VN', options);
     }
 
-    // Chế độ Sáng / Tối
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -467,10 +471,26 @@
     document.body.addEventListener('input', langNgheNhap);
 
     async function xuatAnhVaGuiZalo() {
-        capNhatThoiGian(); // Cập nhật lại thời gian mới nhất khi xuất ảnh
+        capNhatThoiGian();
+        const aiBox = document.getElementById('ai-box-container');
+        const containerNhom = document.getElementById('container-nhom');
+        
+        // Ẩn ô dán AI và mở rộng toàn bộ các cột sang dạng lưới để chụp không bị mất phần cuộn ngang
+        aiBox.style.display = 'none';
+        containerNhom.classList.add('exporting');
+
         const element = document.getElementById('print-area');
         try {
-            const canvas = await html2canvas(element, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg') });
+            const canvas = await html2canvas(element, { 
+                scale: 2, 
+                useCORS: true,
+                backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg') 
+            });
+
+            // Khôi phục lại trạng thái ban đầu
+            aiBox.style.display = 'block';
+            containerNhom.classList.remove('exporting');
+
             canvas.toBlob(async (blob) => {
                 const file = new File([blob], "bang-tinh-tien.png", { type: "image/png" });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -486,10 +506,12 @@
                     link.download = 'ket-qua-tinh-toan.png';
                     link.href = canvas.toDataURL('image/png');
                     link.click();
-                    alert("Đã lưu ảnh kết quả vào máy! Bạn có thể mở Zalo và gửi ảnh vừa tải lên.");
+                    alert("Đã lưu ảnh kết quả đầy đủ vào máy! Bạn có thể mở Zalo và gửi ảnh vừa tải lên.");
                 }
             });
         } catch (err) {
+            aiBox.style.display = 'block';
+            containerNhom.classList.remove('exporting');
             alert("Không thể tạo ảnh. Vui lòng thử lại!");
         }
     }
