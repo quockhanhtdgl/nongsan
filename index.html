@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tính Toán Mã Hàng</title>
+    <title>Tính Toán Mã Hàng Theo Cột</title>
 
-    <!-- Cấu hình chạy dạng App Standalone (Ẩn nút reload & thanh địa chỉ) -->
+    <!-- Cấu hình PWA (Chạy dạng App Standalone, ẩn nút reload) -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,18 +19,16 @@
         body {
             background-color: #f2f2f7;
             margin: 0;
-            padding: 12px;
-            display: flex;
-            justify-content: center;
+            padding: 10px;
         }
         .app-card {
             background: #ffffff;
             width: 100%;
-            max-width: 440px;
-            padding: 16px;
+            max-width: 100%;
+            padding: 12px;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         h2 {
             margin-top: 0;
@@ -38,55 +36,68 @@
             color: #1c1c1e;
             font-size: 18px;
         }
+        
+        /* Khu vực chứa các cột nhóm nằm ngang cạnh nhau */
+        .columns-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto; /* Cho phép cuộn ngang nếu có nhiều nhóm */
+            padding-bottom: 10px;
+            align-items: flex-start;
+        }
+
+        /* Mỗi cột nhóm */
         .section-box {
             background: #f9f9fb;
             border: 1px solid #e5e5ea;
             border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 14px;
+            padding: 10px;
+            min-width: 140px; /* Chiều rộng mỗi cột */
+            flex: 0 0 140px;
         }
         .section-title {
             font-weight: 600;
             font-size: 13px;
             color: #007aff;
             margin-bottom: 8px;
-            text-align: right; /* Đưa tiêu đề nhóm lệch sang phải một chút nếu thích */
+            text-align: center;
         }
-        /* Nhóm mã căn phải hoặc sắp xếp lệch phải */
+        
+        /* Các ô nhập trong cột */
         .column-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            align-items: flex-end; /* Đẩy các ô nhập lệch sang bên phải */
+            gap: 6px;
         }
         .input-code {
-            width: 85%; /* Thu nhỏ lại một chút hoặc để 100% tùy ý, ở đây để lệch phải */
-            padding: 10px 12px;
+            width: 100%;
+            padding: 8px;
             border: 1px solid #c7c7cc;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
             background: #fff;
-            text-align: right;
+            text-align: center;
         }
         .input-code:focus {
             border-color: #007aff;
         }
-        /* Ô hiển thị Tổng ngay dưới mỗi nhóm và CĂN GIỮA */
+        
+        /* Tổng dưới mỗi nhóm - căn giữa */
         .group-total-box {
-            margin-top: 10px;
-            padding-top: 8px;
+            margin-top: 8px;
+            padding-top: 6px;
             border-top: 1px dashed #c7c7cc;
-            font-size: 14px;
+            font-size: 12px;
             color: #3a3a3c;
             font-weight: 600;
-            text-align: center; /* Căn giữa đúng yêu cầu */
+            text-align: center;
         }
         .hidden-group {
-            display: none;
+            display: none !important;
         }
         
-        /* Khu vực tổng kết các nhóm & tính tiền cuối cùng */
+        /* Khu vực tổng kết cuối cùng */
         .footer-calc {
             background: #e5f1ff;
             border: 1px solid #b3d7ff;
@@ -142,13 +153,14 @@
 <body>
 
 <div class="app-card">
-    <h2>Bảng Nhập Mã Hàng</h2>
+    <h2>Bảng Nhập Mã Theo Cột Ngang</h2>
 
-    <div id="container-nhom">
-        <!-- Các nhóm 5 mã sẽ được sinh tự động bằng JS -->
+    <!-- Các cột nhóm nằm ngang -->
+    <div class="columns-container" id="container-nhom">
+        <!-- Được sinh tự động bằng JS -->
     </div>
 
-    <!-- Khu vực tổng tất cả nhóm, trừ bì và thành tiền -->
+    <!-- Khu vực tổng kết cuối -->
     <div class="footer-calc">
         <div class="footer-field">
             <label for="input-trubi">Trừ Bì (Tổng)</label>
@@ -172,28 +184,27 @@
 </div>
 
 <script>
-    const tongSoNhom = 12; // Tối đa 12 nhóm (60 mã)
+    const tongSoNhom = 12; // Tối đa 12 cột nhóm (60 mã)
     const container = document.getElementById('container-nhom');
     const truBiInput = document.getElementById('input-trubi');
     const donGiaInput = document.getElementById('input-dongia');
 
-    // 1. Tạo giao diện các nhóm 5 mã
     function taoGiaoDien() {
         let html = '';
         for (let i = 1; i <= tongSoNhom; i++) {
             let hiddenClass = (i > 1) ? 'hidden-group' : '';
             html += `
                 <div class="section-box ${hiddenClass}" id="nhom_${i}">
-                    <div class="section-title">Nhóm ${i} (5 Mã)</div>
+                    <div class="section-title">Nhóm ${i}</div>
                     <div class="column-group">
-                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="1" placeholder="Mã ${ (i-1)*5 + 1 }">
-                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="2" placeholder="Mã ${ (i-1)*5 + 2 }">
-                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="3" placeholder="Mã ${ (i-1)*5 + 3 }">
-                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="4" placeholder="Mã ${ (i-1)*5 + 4 }">
-                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="5" placeholder="Mã ${ (i-1)*5 + 5 }">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="1" placeholder="Mã 1">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="2" placeholder="Mã 2">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="3" placeholder="Mã 3">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="4" placeholder="Mã 4">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="5" placeholder="Mã 5">
                     </div>
                     <div class="group-total-box" id="tong_nhom_${i}">
-                        Tổng nhóm ${i}: 0
+                        Tổng: 0
                     </div>
                 </div>
             `;
@@ -202,7 +213,6 @@
         taiDuLieuCu();
     }
 
-    // 2. Tính toán tổng từng nhóm và tổng chung
     function tinhToanChung() {
         let tongTatCaCacNhom = 0;
         let activeNhomMax = 1;
@@ -221,22 +231,18 @@
                 }
             });
 
-            // Cập nhật ô tổng dưới mỗi nhóm (đã căn giữa trong CSS)
             const groupTotalEl = document.getElementById(`tong_nhom_${i}`);
             if (groupTotalEl) {
-                groupTotalEl.innerHTML = `Tổng nhóm ${i}: <span style="color:#007aff;">${tongNhomNay.toLocaleString('vi-VN')}</span>`;
+                groupTotalEl.innerHTML = `Tổng: <span style="color:#007aff;">${tongNhomNay.toLocaleString('vi-VN')}</span>`;
             }
 
-            // Cộng dồn vào tổng chung
             tongTatCaCacNhom += tongNhomNay;
 
-            // Nếu điền xong 5 mã ở nhóm này -> Cho phép hiện nhóm tiếp theo
             if (daNhapDu5) {
                 activeNhomMax = i + 1;
             }
         }
 
-        // Hiển thị mở rộng nhóm tiếp theo
         for (let i = 1; i <= tongSoNhom; i++) {
             let el = document.getElementById(`nhom_${i}`);
             if (i <= activeNhomMax && el) {
@@ -244,7 +250,6 @@
             }
         }
 
-        // Tính toán ở footer
         const truBi = parseFloat(truBiInput.value) || 0;
         const donGia = parseFloat(donGiaInput.value) || 0;
 
@@ -260,7 +265,6 @@
         `;
     }
 
-    // 3. Tự động lưu vào localStorage
     function langNgheNhap(e) {
         const target = e.target;
         if (target.tagName === 'INPUT') {
@@ -301,7 +305,6 @@
 
     document.body.addEventListener('input', langNgheNhap);
 
-    // Xóa tất cả dữ liệu có yêu cầu nhập mật khẩu xác nhận
     function xoaTatCa() {
         let password = prompt("Nhập mật khẩu để xác nhận xóa toàn bộ dữ liệu:");
         if (password === "944151") {
