@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tính Toán Mã Hàng</title>
+    <title>Tính Toán Mã Hàng Cột</title>
 
-    <!-- Cấu hình chạy dạng App Standalone (Ẩn nút reload & thanh địa chỉ) -->
+    <!-- Cấu hình PWA (Standalone app, ẩn nút reload khi đưa ra màn hình chính) -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,10 +26,11 @@
         .app-card {
             background: #ffffff;
             width: 100%;
-            max-width: 480px;
+            max-width: 440px;
             padding: 16px;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
         }
         h2 {
             margin-top: 0;
@@ -42,69 +43,70 @@
             border: 1px solid #e5e5ea;
             border-radius: 12px;
             padding: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
         .section-title {
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             color: #007aff;
             margin-bottom: 8px;
         }
-        .row-group {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            margin-bottom: 8px;
+        /* Dạng cột dọc từng ô một */
+        .column-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
         .input-code {
             width: 100%;
-            padding: 8px 4px;
-            text-align: center;
+            padding: 10px 12px;
             border: 1px solid #c7c7cc;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 16px;
             outline: none;
             background: #fff;
         }
         .input-code:focus {
             border-color: #007aff;
         }
-        .calc-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
+        .hidden-group {
+            display: none;
         }
-        .calc-field {
-            flex: 1;
+        
+        /* Khu vực tổng kết ở dưới cùng */
+        .footer-calc {
+            background: #e5f1ff;
+            border: 1px solid #b3d7ff;
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 16px;
         }
-        .calc-field label {
+        .footer-field {
+            margin-bottom: 10px;
+        }
+        .footer-field label {
             display: block;
-            font-size: 12px;
-            color: #555;
+            font-size: 13px;
+            font-weight: 600;
+            color: #004085;
             margin-bottom: 4px;
-            font-weight: 500;
         }
-        .calc-field input {
+        .footer-field input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #c7c7cc;
+            padding: 10px;
+            border: 1px solid #99c2ff;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 16px;
             background: #fff;
             outline: none;
         }
-        .summary-box {
-            background: #e5f1ff;
-            border: 1px solid #b3d7ff;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 8px;
-            font-size: 13px;
-            color: #004085;
-            line-height: 1.5;
-        }
-        .hidden-group {
-            display: none;
+        .summary-result {
+            font-size: 14px;
+            color: #003366;
+            line-height: 1.6;
+            margin-top: 12px;
+            border-top: 1px solid #b3d7ff;
+            padding-top: 10px;
         }
         .btn-group {
             display: flex;
@@ -127,10 +129,28 @@
 <body>
 
 <div class="app-card">
-    <h2>Bảng Tính 5 Mã Hàng</h2>
+    <h2>Bảng Nhập Mã Theo Cột</h2>
 
     <div id="container-nhom">
-        <!-- Các nhóm 5 mã sẽ được sinh tự động bằng Javascript -->
+        <!-- Các nhóm 5 mã dạng cột sẽ được sinh tự động bằng JS -->
+    </div>
+
+    <!-- Khu vực trừ bì và tổng kết cuối cùng -->
+    <div class="footer-calc">
+        <div class="footer-field">
+            <label for="input-trubi">Trừ Bì (Tổng)</label>
+            <input type="number" id="input-trubi" placeholder="Nhập số trừ bì...">
+        </div>
+        <div class="footer-field">
+            <label for="input-dongia">Đơn Giá</label>
+            <input type="number" id="input-dongia" placeholder="Nhập đơn giá...">
+        </div>
+
+        <div class="summary-result" id="ketqua-chung">
+            Tổng các mã: 0<br>
+            Sau trừ bì: 0<br>
+            <b style="font-size: 16px; color: #002244;">Thành tiền: 0 ₫</b>
+        </div>
     </div>
 
     <div class="btn-group">
@@ -139,41 +159,25 @@
 </div>
 
 <script>
-    const tongSoNhom = 10; // Có thể tạo sẵn tối đa 10 nhóm (50 mã), điền tới đâu hiện tới đó
+    const tongSoNhom = 12; // Tạo sẵn tối đa 12 nhóm (60 mã), điền xong nhóm nào hiện nhóm tiếp theo
     const container = document.getElementById('container-nhom');
+    const truBiInput = document.getElementById('input-trubi');
+    const donGiaInput = document.getElementById('input-dongia');
 
-    // 1. Khởi tạo giao diện các nhóm cột 5 mã
+    // 1. Khởi tạo giao diện nhóm cột
     function taoGiaoDien() {
         let html = '';
         for (let i = 1; i <= tongSoNhom; i++) {
-            // Nhóm đầu tiên luôn hiện, các nhóm sau ẩn đi cho đến khi nhóm trước điền đủ
             let hiddenClass = (i > 1) ? 'hidden-group' : '';
-            
             html += `
                 <div class="section-box ${hiddenClass}" id="nhom_${i}">
                     <div class="section-title">Nhóm ${i} (5 Mã)</div>
-                    <div class="row-group">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="1" placeholder="Mã 1">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="2" placeholder="Mã 2">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="3" placeholder="Mã 3">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="4" placeholder="Mã 4">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="5" placeholder="Mã 5">
-                    </div>
-                    
-                    <div class="calc-row">
-                        <div class="calc-field">
-                            <label>Trừ bì</label>
-                            <input type="number" class="input-trubi" data-nhom="${i}" placeholder="Trừ bì">
-                        </div>
-                        <div class="calc-field">
-                            <label>Đơn giá</label>
-                            <input type="number" class="input-dongia" data-nhom="${i}" placeholder="Đơn giá">
-                        </div>
-                    </div>
-
-                    <div class="summary-box" id="kq_${i}">
-                        Tổng 5 mã: 0 | Sau trừ bì: 0<br>
-                        <b>Thành tiền: 0 ₫</b>
+                    <div class="column-group">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="1" placeholder="Mã ${ (i-1)*5 + 1 }">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="2" placeholder="Mã ${ (i-1)*5 + 2 }">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="3" placeholder="Mã ${ (i-1)*5 + 3 }">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="4" placeholder="Mã ${ (i-1)*5 + 4 }">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="5" placeholder="Mã ${ (i-1)*5 + 5 }">
                     </div>
                 </div>
             `;
@@ -182,92 +186,103 @@
         taiDuLieuCu();
     }
 
-    // 2. Tính toán cho từng nhóm
-    function tinhToanNhom(nhomId) {
-        const inputs = document.querySelectorAll(`.input-code[data-nhom="${nhomId}"]`);
-        const truBiInput = document.querySelector(`.input-trubi[data-nhom="${nhomId}"]`);
-        const donGiaInput = document.querySelector(`.input-dongia[data-nhom="${nhomId}"]`);
-        const kqBox = document.getElementById(`kq_${nhomId}`);
+    // 2. Tính toán tổng cộng toàn bộ
+    function tinhToanChung() {
+        let tongTatCa = 0;
+        let activeNhomMax = 1;
 
-        let tong5Ma = 0;
-        let daNhapDu5 = true;
+        // Duyệt qua tất cả các nhóm để cộng dồn và kiểm tra hiển thị
+        for (let i = 1; i <= tongSoNhom; i++) {
+            const inputs = document.querySelectorAll(`.input-code[data-nhom="${i}"]`);
+            let daNhapDu5NhomNay = true;
 
-        inputs.forEach(input => {
-            const val = parseFloat(input.value);
-            if (!isNaN(val)) {
-                tong5Ma += val;
-            } else {
-                daNhapDu5 = false; // Chưa điền đủ 5 mã
+            inputs.forEach(input => {
+                const val = parseFloat(input.value);
+                if (!isNaN(val)) {
+                    tongTatCa += val;
+                } else {
+                    daNhapDu5NhomNay = false;
+                }
+            });
+
+            // Nếu nhóm này điền đủ 5 mã thì kích hoạt nhóm tiếp theo hiện ra
+            if (daNhapDu5NhomNay) {
+                activeNhomMax = i + 1;
             }
-        });
+        }
 
+        // Hiển thị các nhóm tiếp theo tùy theo tiến độ nhập
+        for (let i = 1; i <= tongSoNhom; i++) {
+            let el = document.getElementById(`nhom_${i}`);
+            if (i <= activeNhomMax && el) {
+                el.classList.remove('hidden-group');
+            }
+        }
+
+        // Tính trừ bì & thành tiền
         const truBi = parseFloat(truBiInput.value) || 0;
         const donGia = parseFloat(donGiaInput.value) || 0;
-        
-        let sauTruBi = tong5Ma - truBi;
+
+        let sauTruBi = tongTatCa - truBi;
         if (sauTruBi < 0) sauTruBi = 0;
 
         let thanhTien = sauTruBi * donGia;
 
-        kqBox.innerHTML = `
-            Tổng 5 mã: ${tong5Ma.toLocaleString('vi-VN')} | Sau trừ bì: ${sauTruBi.toLocaleString('vi-VN')}<br>
-            <b>Thành tiền: ${thanhTien.toLocaleString('vi-VN')} ₫</b>
+        // Đổ dữ liệu ra khung tổng kết cuối
+        document.getElementById('ketqua-chung').innerHTML = `
+            Tổng các mã: <b>${tongTatCa.toLocaleString('vi-VN')}</b><br>
+            Sau trừ bì: <b>${sauTruBi.toLocaleString('vi-VN')}</b><br>
+            <b style="font-size: 16px; color: #002244;">Thành tiền: ${thanhTien.toLocaleString('vi-VN')} ₫</b>
         `;
-
-        // Kiểm tra nếu nhóm này đã nhập đủ 5 mã -> Mở khóa hiển thị nhóm tiếp theo
-        if (daNhapDu5) {
-            let nextNhom = parseInt(nhomId) + 1;
-            let nextElement = document.getElementById(`nhom_${nextNhom}`);
-            if (nextElement) {
-                nextElement.classList.remove('hidden-group');
-            }
-        }
     }
 
-    // 3. Lưu trữ và khôi phục localStorage tự động
-    function luuVaXuLy(e) {
+    // 3. Lưu trữ localStorage tự động
+    function langNgheNhap(e) {
         const target = e.target;
         if (target.tagName === 'INPUT') {
-            // Lưu giá trị vào localStorage
-            const key = `app_${target.className}_${target.getAttribute('data-nhom')}_${target.getAttribute('data-idx') || target.className}`;
-            localStorage.setItem(key, target.value);
+            let key = '';
+            if (target.classList.contains('input-code')) {
+                key = `col_code_${target.getAttribute('data-nhom')}_${target.getAttribute('data-idx')}`;
+            } else if (target.id === 'input-trubi') {
+                key = `col_trubi`;
+            } else if (target.id === 'input-dongia') {
+                key = `col_dongia`;
+            }
 
-            // Xác định nhóm nào vừa thay đổi để tính lại
-            const nhomId = target.getAttribute('data-nhom');
-            tinhToanNhom(nhomId);
+            if (key) {
+                localStorage.setItem(key, target.value);
+            }
+            tinhToanChung();
         }
     }
 
     function taiDuLieuCu() {
-        const allInputs = document.querySelectorAll('input');
+        // Khôi phục các ô mã
+        const allInputs = document.querySelectorAll('.input-code');
         allInputs.forEach(input => {
-            const nhomId = input.getAttribute('data-nhom');
-            let key = '';
-            if (input.classList.contains('input-code')) {
-                key = `app_input-code_${nhomId}_${input.getAttribute('data-idx')}`;
-            } else if (input.classList.contains('input-trubi')) {
-                key = `app_input-trubi_${nhomId}_input-trubi`;
-            } else if (input.classList.contains('input-dongia')) {
-                key = `app_input-dongia_${nhomId}_input-dongia`;
-            }
-
-            if (key && localStorage.getItem(key) !== null) {
+            let key = `col_code_${input.getAttribute('data-nhom')}_${input.getAttribute('data-idx')}`;
+            if (localStorage.getItem(key) !== null) {
                 input.value = localStorage.getItem(key);
             }
         });
 
-        // Chạy tính toán lại và mở các nhóm đã từng điền đủ trước đó
-        for (let i = 1; i <= tongSoNhom; i++) {
-            tinhToanNhom(i);
+        // Khôi phục trừ bì và đơn giá
+        if (localStorage.getItem('col_trubi') !== null) {
+            truBiInput.value = localStorage.getItem('col_trubi');
         }
+        if (localStorage.getItem('col_dongia') !== null) {
+            donGiaInput.value = localStorage.getItem('col_dongia');
+        }
+
+        tinhToanChung();
     }
 
-    // Lắng nghe sự kiện nhập liệu trên toàn container
-    container.addEventListener('input', luuVaXuLy);
+    // Lắng nghe sự kiện input toàn cục
+    document.body.addEventListener('input', langNgheNhap);
 
     // Xóa tất cả dữ liệu
     function xoaTatCa() {
-        if (confirm("Bạn có chắc chắn muốn xóa hết toàn bộ số liệu không?")) {
+        if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ số liệu không?")) {
             localStorage.clear();
             location.reload();
         }
