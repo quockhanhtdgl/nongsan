@@ -3,149 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công Cụ Tính Toán</title>
+    <title>Tính Toán Mã Hàng</title>
 
-    <!-- Cấu hình PWA để ẩn thanh trình duyệt / nút reload khi đưa ra màn hình chính -->
+    <!-- Cấu hình chạy dạng App Standalone (Ẩn nút reload & thanh địa chỉ) -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="AppTinhToan">
+    <meta name="apple-mobile-web-app-title" content="TinhToan">
 
-    <!-- CSS cơ bản cho giao diện gọn gàng, dễ nhìn -->
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f7f6;
+        }
+        body {
+            background-color: #f2f2f7;
             margin: 0;
-            padding: 20px;
+            padding: 12px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
-        .container {
+        .app-card {
             background: #ffffff;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             width: 100%;
-            max-width: 400px;
+            max-width: 480px;
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         h2 {
             margin-top: 0;
-            color: #333;
-            font-size: 20px;
             text-align: center;
+            color: #1c1c1e;
+            font-size: 18px;
         }
-        .form-group {
-            margin-bottom: 16px;
+        .section-box {
+            background: #f9f9fb;
+            border: 1px solid #e5e5ea;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 14px;
         }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            color: #555;
-            font-weight: 500;
+        .section-title {
+            font-weight: 600;
             font-size: 14px;
+            color: #007aff;
+            margin-bottom: 8px;
         }
-        input {
+        .row-group {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .input-code {
             width: 100%;
-            padding: 10px 12px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
+            padding: 8px 4px;
+            text-align: center;
+            border: 1px solid #c7c7cc;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
-            transition: border-color 0.2s;
+            background: #fff;
         }
-        input:focus {
+        .input-code:focus {
             border-color: #007aff;
+        }
+        .calc-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .calc-field {
+            flex: 1;
+        }
+        .calc-field label {
+            display: block;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .calc-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #c7c7cc;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fff;
+            outline: none;
+        }
+        .summary-box {
+            background: #e5f1ff;
+            border: 1px solid #b3d7ff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #004085;
+            line-height: 1.5;
+        }
+        .hidden-group {
+            display: none;
         }
         .btn-group {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 16px;
         }
         button {
             flex: 1;
             padding: 12px;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
         }
-        .btn-save {
-            background-color: #007aff;
-            color: white;
-        }
-        .btn-reset {
-            background-color: #ff3b30;
-            color: white;
-        }
-        button:active {
-            opacity: 0.8;
-        }
+        .btn-reset { background-color: #ff3b30; color: white; }
+        button:active { opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Công Cụ Tính Toán</h2>
-        
-        <!-- Khung nhập liệu mẫu (Bạn có thể thay đổi ID và số lượng input theo ý muốn) -->
-        <div class="form-group">
-            <label for="input1">Số liệu 1:</label>
-            <input type="number" id="input1" placeholder="Nhập số...">
-        </div>
+<div class="app-card">
+    <h2>Bảng Tính 5 Mã Hàng</h2>
 
-        <div class="form-group">
-            <label for="input2">Số liệu 2:</label>
-            <input type="number" id="input2" placeholder="Nhập số...">
-        </div>
-
-        <div class="form-group">
-            <label for="input3">Ghi chú / Kết quả:</label>
-            <input type="text" id="input3" placeholder="Nhập ghi chú...">
-        </div>
-
-        <div class="btn-group">
-            <button class="btn-reset" onclick="resetData()">Xóa dữ liệu</button>
-        </div>
+    <div id="container-nhom">
+        <!-- Các nhóm 5 mã sẽ được sinh tự động bằng Javascript -->
     </div>
 
-    <!-- JavaScript tự động lưu dữ liệu và đăng ký Service Worker -->
-    <script>
-        // 1. Tự động lưu và khôi phục dữ liệu qua localStorage
-        const inputs = document.querySelectorAll('input');
+    <div class="btn-group">
+        <button class="btn-reset" onclick="xoaTatCa()">Xóa Tất Cả Dữ Liệu</button>
+    </div>
+</div>
+
+<script>
+    const tongSoNhom = 10; // Có thể tạo sẵn tối đa 10 nhóm (50 mã), điền tới đâu hiện tới đó
+    const container = document.getElementById('container-nhom');
+
+    // 1. Khởi tạo giao diện các nhóm cột 5 mã
+    function taoGiaoDien() {
+        let html = '';
+        for (let i = 1; i <= tongSoNhom; i++) {
+            // Nhóm đầu tiên luôn hiện, các nhóm sau ẩn đi cho đến khi nhóm trước điền đủ
+            let hiddenClass = (i > 1) ? 'hidden-group' : '';
+            
+            html += `
+                <div class="section-box ${hiddenClass}" id="nhom_${i}">
+                    <div class="section-title">Nhóm ${i} (5 Mã)</div>
+                    <div class="row-group">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="1" placeholder="Mã 1">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="2" placeholder="Mã 2">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="3" placeholder="Mã 3">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="4" placeholder="Mã 4">
+                        <input type="number" class="input-code" data-nhom="${i}" data-idx="5" placeholder="Mã 5">
+                    </div>
+                    
+                    <div class="calc-row">
+                        <div class="calc-field">
+                            <label>Trừ bì</label>
+                            <input type="number" class="input-trubi" data-nhom="${i}" placeholder="Trừ bì">
+                        </div>
+                        <div class="calc-field">
+                            <label>Đơn giá</label>
+                            <input type="number" class="input-dongia" data-nhom="${i}" placeholder="Đơn giá">
+                        </div>
+                    </div>
+
+                    <div class="summary-box" id="kq_${i}">
+                        Tổng 5 mã: 0 | Sau trừ bì: 0<br>
+                        <b>Thành tiền: 0 ₫</b>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+        taiDuLieuCu();
+    }
+
+    // 2. Tính toán cho từng nhóm
+    function tinhToanNhom(nhomId) {
+        const inputs = document.querySelectorAll(`.input-code[data-nhom="${nhomId}"]`);
+        const truBiInput = document.querySelector(`.input-trubi[data-nhom="${nhomId}"]`);
+        const donGiaInput = document.querySelector(`.input-dongia[data-nhom="${nhomId}"]`);
+        const kqBox = document.getElementById(`kq_${nhomId}`);
+
+        let tong5Ma = 0;
+        let daNhapDu5 = true;
 
         inputs.forEach(input => {
-            // Khôi phục giá trị cũ nếu đã có trong bộ nhớ
-            if (localStorage.getItem(input.id)) {
-                input.value = localStorage.getItem(input.id);
+            const val = parseFloat(input.value);
+            if (!isNaN(val)) {
+                tong5Ma += val;
+            } else {
+                daNhapDu5 = false; // Chưa điền đủ 5 mã
             }
-
-            // Lắng nghe sự kiện người dùng gõ/nhập để lưu ngay lập tức
-            input.addEventListener('input', function() {
-                localStorage.setItem(input.id, input.value);
-            });
         });
 
-        // Nút xóa sạch dữ liệu khi cần
-        function resetData() {
-            if (confirm("Bạn có chắc muốn xóa hết dữ liệu đang tính không?")) {
-                localStorage.clear();
-                inputs.forEach(input => input.value = '');
+        const truBi = parseFloat(truBiInput.value) || 0;
+        const donGia = parseFloat(donGiaInput.value) || 0;
+        
+        let sauTruBi = tong5Ma - truBi;
+        if (sauTruBi < 0) sauTruBi = 0;
+
+        let thanhTien = sauTruBi * donGia;
+
+        kqBox.innerHTML = `
+            Tổng 5 mã: ${tong5Ma.toLocaleString('vi-VN')} | Sau trừ bì: ${sauTruBi.toLocaleString('vi-VN')}<br>
+            <b>Thành tiền: ${thanhTien.toLocaleString('vi-VN')} ₫</b>
+        `;
+
+        // Kiểm tra nếu nhóm này đã nhập đủ 5 mã -> Mở khóa hiển thị nhóm tiếp theo
+        if (daNhapDu5) {
+            let nextNhom = parseInt(nhomId) + 1;
+            let nextElement = document.getElementById(`nhom_${nextNhom}`);
+            if (nextElement) {
+                nextElement.classList.remove('hidden-group');
             }
         }
+    }
 
-        // 2. Đăng ký Service Worker để chạy offline hoàn toàn
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(() => console.log('Service Worker registered successfully!'))
-                    .catch(err => console.log('Service Worker registration failed:', err));
-            });
+    // 3. Lưu trữ và khôi phục localStorage tự động
+    function luuVaXuLy(e) {
+        const target = e.target;
+        if (target.tagName === 'INPUT') {
+            // Lưu giá trị vào localStorage
+            const key = `app_${target.className}_${target.getAttribute('data-nhom')}_${target.getAttribute('data-idx') || target.className}`;
+            localStorage.setItem(key, target.value);
+
+            // Xác định nhóm nào vừa thay đổi để tính lại
+            const nhomId = target.getAttribute('data-nhom');
+            tinhToanNhom(nhomId);
         }
-    </script>
+    }
+
+    function taiDuLieuCu() {
+        const allInputs = document.querySelectorAll('input');
+        allInputs.forEach(input => {
+            const nhomId = input.getAttribute('data-nhom');
+            let key = '';
+            if (input.classList.contains('input-code')) {
+                key = `app_input-code_${nhomId}_${input.getAttribute('data-idx')}`;
+            } else if (input.classList.contains('input-trubi')) {
+                key = `app_input-trubi_${nhomId}_input-trubi`;
+            } else if (input.classList.contains('input-dongia')) {
+                key = `app_input-dongia_${nhomId}_input-dongia`;
+            }
+
+            if (key && localStorage.getItem(key) !== null) {
+                input.value = localStorage.getItem(key);
+            }
+        });
+
+        // Chạy tính toán lại và mở các nhóm đã từng điền đủ trước đó
+        for (let i = 1; i <= tongSoNhom; i++) {
+            tinhToanNhom(i);
+        }
+    }
+
+    // Lắng nghe sự kiện nhập liệu trên toàn container
+    container.addEventListener('input', luuVaXuLy);
+
+    // Xóa tất cả dữ liệu
+    function xoaTatCa() {
+        if (confirm("Bạn có chắc chắn muốn xóa hết toàn bộ số liệu không?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    // Khởi chạy khi tải trang
+    window.addEventListener('load', taoGiaoDien);
+
+    // Đăng ký Service Worker chạy Offline
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+    }
+</script>
+
 </body>
 </html>
