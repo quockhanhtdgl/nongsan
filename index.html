@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tính Toán Mã Hàng Theo Cột</title>
+    <title>Tính Toán Mã Hàng</title>
 
     <!-- Cấu hình PWA (Chạy dạng App Standalone, ẩn nút reload) -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TinhToan">
+
+    <!-- Thư viện html2canvas để chụp ảnh giao diện -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         * {
@@ -37,22 +40,21 @@
             font-size: 18px;
         }
         
-        /* Khu vực chứa các cột nhóm nằm ngang cạnh nhau */
+        /* Khu vực chứa các cột nhóm nằm ngang */
         .columns-container {
             display: flex;
             gap: 10px;
-            overflow-x: auto; /* Cho phép cuộn ngang nếu có nhiều nhóm */
+            overflow-x: auto;
             padding-bottom: 10px;
             align-items: flex-start;
         }
 
-        /* Mỗi cột nhóm */
         .section-box {
             background: #f9f9fb;
             border: 1px solid #e5e5ea;
             border-radius: 12px;
             padding: 10px;
-            min-width: 140px; /* Chiều rộng mỗi cột */
+            min-width: 140px;
             flex: 0 0 140px;
         }
         .section-title {
@@ -63,7 +65,6 @@
             text-align: center;
         }
         
-        /* Các ô nhập trong cột */
         .column-group {
             display: flex;
             flex-direction: column;
@@ -83,7 +84,6 @@
             border-color: #007aff;
         }
         
-        /* Tổng dưới mỗi nhóm - căn giữa */
         .group-total-box {
             margin-top: 8px;
             padding-top: 6px;
@@ -97,7 +97,6 @@
             display: none !important;
         }
         
-        /* Khu vực tổng kết cuối cùng */
         .footer-calc {
             background: #e5f1ff;
             border: 1px solid #b3d7ff;
@@ -146,21 +145,18 @@
             font-weight: 600;
             cursor: pointer;
         }
+        .btn-zalo { background-color: #0068ff; color: white; }
         .btn-reset { background-color: #ff3b30; color: white; }
         button:active { opacity: 0.8; }
     </style>
 </head>
 <body>
 
-<div class="app-card">
-    <h2>Bảng Nhập Mã Theo Cột Ngang</h2>
+<div class="app-card" id="print-area">
+    <h2>Bảng Nhập Mã Hàng</h2>
 
-    <!-- Các cột nhóm nằm ngang -->
-    <div class="columns-container" id="container-nhom">
-        <!-- Được sinh tự động bằng JS -->
-    </div>
+    <div class="columns-container" id="container-nhom"></div>
 
-    <!-- Khu vực tổng kết cuối -->
     <div class="footer-calc">
         <div class="footer-field">
             <label for="input-trubi">Trừ Bì (Tổng)</label>
@@ -177,14 +173,17 @@
             <b style="font-size: 16px; color: #002244;">Thành tiền: 0 ₫</b>
         </div>
     </div>
+</div>
 
+<div style="padding: 0 12px; max-width: 100%;">
     <div class="btn-group">
-        <button class="btn-reset" onclick="xoaTatCa()">Xóa Tất Cả Dữ Liệu</button>
+        <button class="btn-zalo" onclick="xuatAnhVaGuiZalo()">📤 Xuất Ảnh & Gửi Zalo</button>
+        <button class="btn-reset" onclick="xoaTatCa()">🗑️ Xóa Tất Cả</button>
     </div>
 </div>
 
 <script>
-    const tongSoNhom = 12; // Tối đa 12 cột nhóm (60 mã)
+    const tongSoNhom = 12;
     const container = document.getElementById('container-nhom');
     const truBiInput = document.getElementById('input-trubi');
     const donGiaInput = document.getElementById('input-dongia');
@@ -305,6 +304,40 @@
 
     document.body.addEventListener('input', langNgheNhap);
 
+    // Xuất ảnh và gửi qua Zalo
+    async function xuatAnhVaGuiZalo() {
+        const element = document.getElementById('print-area');
+        try {
+            const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], "bang-tinh-tien.png", { type: "image/png" });
+                
+                // Thử dùng Web Share API để chia sẻ trực tiếp (Zalo sẽ hiện trong danh sách)
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            title: 'Bảng Tính Mã Hàng',
+                            text: 'Gửi kết quả bảng tính toán',
+                            files: [file]
+                        });
+                    } catch (err) {
+                        // Người dùng hủy chia sẻ
+                    }
+                } else {
+                    // Fallback: Tải ảnh về máy nếu thiết bị không hỗ trợ chia sẻ file trực tiếp
+                    const link = document.createElement('a');
+                    link.download = 'ket-qua-tinh-toan.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    alert("Đã lưu ảnh kết quả vào máy! Bạn có thể mở Zalo và gửi ảnh vừa tải lên.");
+                }
+            });
+        } catch (err) {
+            alert("Không thể tạo ảnh. Vui lòng thử lại!");
+        }
+    }
+
+    // Xóa tất cả dữ liệu có yêu cầu mật khẩu
     function xoaTatCa() {
         let password = prompt("Nhập mật khẩu để xác nhận xóa toàn bộ dữ liệu:");
         if (password === "944151") {
