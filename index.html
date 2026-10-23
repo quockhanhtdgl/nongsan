@@ -2,10 +2,10 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tính Toán Mã Hàng Cột</title>
 
-    <!-- Cấu hình PWA (Standalone app, ẩn nút reload khi đưa ra màn hình chính) -->
+    <!-- Cấu hình chạy dạng App Standalone (Ẩn nút reload & thanh địa chỉ) -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -43,7 +43,7 @@
             border: 1px solid #e5e5ea;
             border-radius: 12px;
             padding: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         .section-title {
             font-weight: 600;
@@ -51,7 +51,7 @@
             color: #007aff;
             margin-bottom: 8px;
         }
-        /* Dạng cột dọc từng ô một */
+        /* Cột dọc các mã */
         .column-group {
             display: flex;
             flex-direction: column;
@@ -69,11 +69,21 @@
         .input-code:focus {
             border-color: #007aff;
         }
+        /* Ô hiển thị Tổng ngay dưới mỗi nhóm */
+        .group-total-box {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed #c7c7cc;
+            font-size: 14px;
+            color: #3a3a3c;
+            font-weight: 600;
+            text-align: right;
+        }
         .hidden-group {
             display: none;
         }
         
-        /* Khu vực tổng kết ở dưới cùng */
+        /* Khu vực tổng kết các nhóm & tính tiền cuối cùng */
         .footer-calc {
             background: #e5f1ff;
             border: 1px solid #b3d7ff;
@@ -135,20 +145,20 @@
         <!-- Các nhóm 5 mã dạng cột sẽ được sinh tự động bằng JS -->
     </div>
 
-    <!-- Khu vực trừ bì và tổng kết cuối cùng -->
+    <!-- Khu vực tổng tất cả nhóm, trừ bì và thành tiền -->
     <div class="footer-calc">
         <div class="footer-field">
             <label for="input-trubi">Trừ Bì (Tổng)</label>
-            <input type="number" id="input-trubi" placeholder="Nhập số trừ bì...">
+            <input type="number" inputmode="decimal" id="input-trubi" placeholder="Nhập số trừ bì...">
         </div>
         <div class="footer-field">
             <label for="input-dongia">Đơn Giá</label>
-            <input type="number" id="input-dongia" placeholder="Nhập đơn giá...">
+            <input type="number" inputmode="decimal" id="input-dongia" placeholder="Nhập đơn giá...">
         </div>
 
         <div class="summary-result" id="ketqua-chung">
-            Tổng các mã: 0<br>
-            Sau trừ bì: 0<br>
+            Tổng tất cả các nhóm: <b>0</b><br>
+            Sau trừ bì: <b>0</b><br>
             <b style="font-size: 16px; color: #002244;">Thành tiền: 0 ₫</b>
         </div>
     </div>
@@ -159,12 +169,12 @@
 </div>
 
 <script>
-    const tongSoNhom = 12; // Tạo sẵn tối đa 12 nhóm (60 mã), điền xong nhóm nào hiện nhóm tiếp theo
+    const tongSoNhom = 12; // Tối đa 12 nhóm (60 mã)
     const container = document.getElementById('container-nhom');
     const truBiInput = document.getElementById('input-trubi');
     const donGiaInput = document.getElementById('input-dongia');
 
-    // 1. Khởi tạo giao diện nhóm cột
+    // 1. Tạo giao diện các nhóm 5 mã
     function taoGiaoDien() {
         let html = '';
         for (let i = 1; i <= tongSoNhom; i++) {
@@ -173,11 +183,14 @@
                 <div class="section-box ${hiddenClass}" id="nhom_${i}">
                     <div class="section-title">Nhóm ${i} (5 Mã)</div>
                     <div class="column-group">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="1" placeholder="Mã ${ (i-1)*5 + 1 }">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="2" placeholder="Mã ${ (i-1)*5 + 2 }">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="3" placeholder="Mã ${ (i-1)*5 + 3 }">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="4" placeholder="Mã ${ (i-1)*5 + 4 }">
-                        <input type="number" class="input-code" data-nhom="${i}" data-idx="5" placeholder="Mã ${ (i-1)*5 + 5 }">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="1" placeholder="Mã ${ (i-1)*5 + 1 }">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="2" placeholder="Mã ${ (i-1)*5 + 2 }">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="3" placeholder="Mã ${ (i-1)*5 + 3 }">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="4" placeholder="Mã ${ (i-1)*5 + 4 }">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="5" placeholder="Mã ${ (i-1)*5 + 5 }">
+                    </div>
+                    <div class="group-total-box" id="tong_nhom_${i}">
+                        Tổng nhóm ${i}: 0
                     </div>
                 </div>
             `;
@@ -186,32 +199,41 @@
         taiDuLieuCu();
     }
 
-    // 2. Tính toán tổng cộng toàn bộ
+    // 2. Tính toán tổng từng nhóm và tổng chung
     function tinhToanChung() {
-        let tongTatCa = 0;
+        let tongTatCaCacNhom = 0;
         let activeNhomMax = 1;
 
-        // Duyệt qua tất cả các nhóm để cộng dồn và kiểm tra hiển thị
         for (let i = 1; i <= tongSoNhom; i++) {
             const inputs = document.querySelectorAll(`.input-code[data-nhom="${i}"]`);
-            let daNhapDu5NhomNay = true;
+            let tongNhomNay = 0;
+            let daNhapDu5 = true;
 
             inputs.forEach(input => {
                 const val = parseFloat(input.value);
                 if (!isNaN(val)) {
-                    tongTatCa += val;
+                    tongNhomNay += val;
                 } else {
-                    daNhapDu5NhomNay = false;
+                    daNhapDu5 = false;
                 }
             });
 
-            // Nếu nhóm này điền đủ 5 mã thì kích hoạt nhóm tiếp theo hiện ra
-            if (daNhapDu5NhomNay) {
+            // Cập nhật ô tổng dưới mỗi nhóm
+            const groupTotalEl = document.getElementById(`tong_nhom_${i}`);
+            if (groupTotalEl) {
+                groupTotalEl.innerHTML = `Tổng nhóm ${i}: <span style="color:#007aff;">${tongNhomNay.toLocaleString('vi-VN')}</span>`;
+            }
+
+            // Cộng dồn vào tổng chung
+            tongTatCaCacNhom += tongNhomNay;
+
+            // Nếu điền xong 5 mã ở nhóm này -> Cho phép hiện nhóm tiếp theo
+            if (daNhapDu5) {
                 activeNhomMax = i + 1;
             }
         }
 
-        // Hiển thị các nhóm tiếp theo tùy theo tiến độ nhập
+        // Hiển thị mở rộng nhóm tiếp theo
         for (let i = 1; i <= tongSoNhom; i++) {
             let el = document.getElementById(`nhom_${i}`);
             if (i <= activeNhomMax && el) {
@@ -219,24 +241,23 @@
             }
         }
 
-        // Tính trừ bì & thành tiền
+        // Tính toán ở footer
         const truBi = parseFloat(truBiInput.value) || 0;
         const donGia = parseFloat(donGiaInput.value) || 0;
 
-        let sauTruBi = tongTatCa - truBi;
+        let sauTruBi = tongTatCaCacNhom - truBi;
         if (sauTruBi < 0) sauTruBi = 0;
 
         let thanhTien = sauTruBi * donGia;
 
-        // Đổ dữ liệu ra khung tổng kết cuối
         document.getElementById('ketqua-chung').innerHTML = `
-            Tổng các mã: <b>${tongTatCa.toLocaleString('vi-VN')}</b><br>
+            Tổng tất cả các nhóm: <b>${tongTatCaCacNhom.toLocaleString('vi-VN')}</b><br>
             Sau trừ bì: <b>${sauTruBi.toLocaleString('vi-VN')}</b><br>
             <b style="font-size: 16px; color: #002244;">Thành tiền: ${thanhTien.toLocaleString('vi-VN')} ₫</b>
         `;
     }
 
-    // 3. Lưu trữ localStorage tự động
+    // 3. Tự động lưu vào localStorage
     function langNgheNhap(e) {
         const target = e.target;
         if (target.tagName === 'INPUT') {
@@ -257,7 +278,6 @@
     }
 
     function taiDuLieuCu() {
-        // Khôi phục các ô mã
         const allInputs = document.querySelectorAll('.input-code');
         allInputs.forEach(input => {
             let key = `col_code_${input.getAttribute('data-nhom')}_${input.getAttribute('data-idx')}`;
@@ -266,7 +286,6 @@
             }
         });
 
-        // Khôi phục trừ bì và đơn giá
         if (localStorage.getItem('col_trubi') !== null) {
             truBiInput.value = localStorage.getItem('col_trubi');
         }
@@ -277,10 +296,8 @@
         tinhToanChung();
     }
 
-    // Lắng nghe sự kiện input toàn cục
     document.body.addEventListener('input', langNgheNhap);
 
-    // Xóa tất cả dữ liệu
     function xoaTatCa() {
         if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ số liệu không?")) {
             localStorage.clear();
@@ -288,10 +305,8 @@
         }
     }
 
-    // Khởi chạy khi tải trang
     window.addEventListener('load', taoGiaoDien);
 
-    // Đăng ký Service Worker chạy Offline
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').catch(() => {});
