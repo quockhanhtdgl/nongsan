@@ -298,10 +298,14 @@
 
     document.body.addEventListener('input', langNgheNhap);
 
+    // Xóa tất cả dữ liệu có yêu cầu nhập mật khẩu xác nhận
     function xoaTatCa() {
-        if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ số liệu không?")) {
+        let password = prompt("Nhập mật khẩu để xác nhận xóa toàn bộ dữ liệu:");
+        if (password === "944151") {
             localStorage.clear();
             location.reload();
+        } else if (password !== null) {
+            alert("Mật khẩu không đúng! Không thể xóa dữ liệu.");
         }
     }
 
