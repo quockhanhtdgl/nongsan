@@ -117,4 +117,453 @@
             color: white;
             border: none;
             padding: 4px 8px;
-            border-radius:
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .paste-row {
+            display: flex;
+            gap: 6px;
+        }
+        .paste-row input {
+            flex: 1;
+            padding: 9px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+        }
+        .btn-dien {
+            background-color: var(--primary-btn);
+            color: white;
+            border: none;
+            padding: 0 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Khu vực chứa các cột nhóm nằm ngang */
+        .columns-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            align-items: flex-start;
+        }
+
+        .columns-container.exporting {
+            overflow-x: visible !important;
+            flex-wrap: wrap !important;
+        }
+
+        .section-box {
+            background: var(--box-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            min-width: 140px;
+            flex: 0 0 140px;
+        }
+        .section-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #007aff;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .column-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-code {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            background: var(--input-bg);
+            color: var(--text-color);
+            text-align: center;
+        }
+        .input-code:focus {
+            border-color: #007aff;
+        }
+        
+        .group-total-box {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border-color);
+            font-size: 12px;
+            color: var(--sub-text);
+            font-weight: 600;
+            text-align: center;
+        }
+        .hidden-group {
+            display: none !important;
+        }
+        
+        .footer-calc {
+            background: var(--footer-bg);
+            border: 1px solid var(--footer-border);
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+        .footer-field {
+            margin-bottom: 10px;
+        }
+        .footer-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--footer-text);
+            margin-bottom: 4px;
+        }
+        .footer-field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+        }
+        .summary-result {
+            font-size: 14px;
+            color: var(--summary-text);
+            line-height: 1.6;
+            margin-top: 12px;
+            border-top: 1px solid var(--footer-border);
+            padding-top: 10px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-zalo { background-color: #0068ff; color: white; }
+        .btn-reset { background-color: #ff3b30; color: white; }
+        button:active { opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<div class="app-card" id="print-area">
+    <div class="header-flex">
+        <h2>Bảng Nhập Mã Hàng</h2>
+        <button class="btn-theme" onclick="toggleTheme()" id="theme-btn">🌙 Tối</button>
+    </div>
+    <div class="time-stamp" id="time-stamp-display">Thời gian: Đang cập nhật...</div>
+
+    <div class="paste-ai-box" id="ai-box-container">
+        <div class="paste-header">
+            <label for="input-paste-ai">📋 Dán dãy số từ Gemini:</label>
+            <button class="btn-copy-prompt" onclick="copyCauLenhGemini()">📑 Copy câu lệnh mẫu</button>
+        </div>
+        <div class="paste-row">
+            <input type="text" id="input-paste-ai" placeholder="Dán dãy số vào đây...">
+            <button class="btn-dien" onclick="xuLyDanDaySo()">Điền</button>
+        </div>
+    </div>
+
+    <div class="columns-container" id="container-nhom"></div>
+
+    <div class="footer-calc">
+        <div class="footer-field">
+            <label for="input-trubi">Trừ Bì (Tổng)</label>
+            <input type="number" inputmode="decimal" id="input-trubi" placeholder="Nhập số trừ bì...">
+        </div>
+        <div class="footer-field">
+            <label for="input-dongia">Đơn Giá</label>
+            <input type="number" inputmode="decimal" id="input-dongia" placeholder="Nhập đơn giá...">
+        </div>
+
+        <div class="summary-result" id="ketqua-chung">
+            Tổng số mã đã nhập: <b>0 mã</b><br>
+            Tổng tất cả các nhóm: <b>0</b><br>
+            Sau trừ bì: <b>0</b><br>
+            <b style="font-size: 16px;">Thành tiền: 0 ₫</b>
+        </div>
+    </div>
+</div>
+
+<div style="padding: 0 12px; max-width: 100%;">
+    <div class="btn-group">
+        <button class="btn-zalo" onclick="xuatAnhVaGuiZalo()">📤 Xuất Ảnh & Gửi Zalo</button>
+        <button class="btn-reset" onclick="xoaTatCa()">🗑️ Xóa Tất Cả</button>
+    </div>
+</div>
+
+<script>
+    const tongSoNhom = 12;
+    const container = document.getElementById('container-nhom');
+    const truBiInput = document.getElementById('input-trubi');
+    const donGiaInput = document.getElementById('input-dongia');
+
+    // Copy câu lệnh mẫu cho Gemini
+    function copyCauLenhGemini() {
+        const cauLenh = "Hãy đọc tất cả các con số ghi trong ảnh này. Chỉ trích xuất ra các con số và trả về đúng một dãy số cách nhau bằng dấu phẩy, ví dụ: 120, 150, 200, 250. TUYỆT ĐỐI không viết thêm bất kỳ chữ cái, lời giải thích hay ký tự nào khác ngoài dãy số.";
+        
+        navigator.clipboard.writeText(cauLenh).then(() => {
+            alert("📋 Đã copy câu lệnh! Bạn hãy dán vào khung chat với Gemini kèm theo ảnh chụp.");
+        }).catch(err => {
+            alert("Không thể copy tự động. Vui lòng thử lại!");
+        });
+    }
+
+    function capNhatThoiGian() {
+        const now = new Date();
+        const options = { 
+            hour: '2-digit', minute: '2-digit', second: '2-digit', 
+            day: '2-digit', month: '2-digit', year: 'numeric' 
+        };
+        document.getElementById('time-stamp-display').innerText = "📅 Thời gian: " + now.toLocaleDateString('vi-VN', options);
+    }
+
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('app_theme', newTheme);
+        document.getElementById('theme-btn').innerText = newTheme === 'dark' ? '☀️ Sáng' : '🌙 Tối';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('app_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-btn').innerText = savedTheme === 'dark' ? '☀️ Sáng' : '🌙 Tối';
+        capNhatThoiGian();
+    });
+
+    function taoGiaoDien() {
+        let html = '';
+        for (let i = 1; i <= tongSoNhom; i++) {
+            let hiddenClass = (i > 1) ? 'hidden-group' : '';
+            html += `
+                <div class="section-box ${hiddenClass}" id="nhom_${i}">
+                    <div class="section-title">Nhóm ${i}</div>
+                    <div class="column-group">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="1" placeholder="Mã 1">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="2" placeholder="Mã 2">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="3" placeholder="Mã 3">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="4" placeholder="Mã 4">
+                        <input type="number" inputmode="decimal" class="input-code" data-nhom="${i}" data-idx="5" placeholder="Mã 5">
+                    </div>
+                    <div class="group-total-box" id="tong_nhom_${i}">
+                        Tổng: 0
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+        taiDuLieuCu();
+    }
+
+    function xuLyDanDaySo() {
+        const rawText = document.getElementById('input-paste-ai').value;
+        if (!rawText.trim()) {
+            alert("Vui lòng dán dãy số vào ô!");
+            return;
+        }
+
+        const numbers = rawText.match(/-?\d+(\.\d+)?/g);
+        if (!numbers || numbers.length === 0) {
+            alert("Không tìm thấy dãy số hợp lệ trong đoạn bạn dán!");
+            return;
+        }
+
+        const allInputs = document.querySelectorAll('.input-code');
+        numbers.forEach((num, index) => {
+            if (allInputs[index]) {
+                allInputs[index].value = num;
+                const nhom = allInputs[index].getAttribute('data-nhom');
+                const idx = allInputs[index].getAttribute('data-idx');
+                localStorage.setItem(`col_code_${nhom}_${idx}`, num);
+            }
+        });
+
+        document.getElementById('input-paste-ai').value = '';
+        tinhToanChung();
+        alert(`Đã tự động điền thành công ${numbers.length} số vào các ô!`);
+    }
+
+    function tinhToanChung() {
+        let tongTatCaCacNhom = 0;
+        let soMaDaNhap = 0;
+        let activeNhomMax = 1;
+
+        for (let i = 1; i <= tongSoNhom; i++) {
+            const inputs = document.querySelectorAll(`.input-code[data-nhom="${i}"]`);
+            let tongNhomNay = 0;
+            let daNhapDu5 = true;
+
+            inputs.forEach(input => {
+                const val = parseFloat(input.value);
+                if (!isNaN(input.value) && input.value.trim() !== "") {
+                    soMaDaNhap++;
+                }
+                if (!isNaN(val)) {
+                    tongNhomNay += val;
+                } else {
+                    daNhapDu5 = false;
+                }
+            });
+
+            const groupTotalEl = document.getElementById(`tong_nhom_${i}`);
+            if (groupTotalEl) {
+                groupTotalEl.innerHTML = `Tổng: <span style="color:#007aff;">${tongNhomNay.toLocaleString('vi-VN')}</span>`;
+            }
+
+            tongTatCaCacNhom += tongNhomNay;
+
+            if (daNhapDu5) {
+                activeNhomMax = i + 1;
+            }
+        }
+
+        for (let i = 1; i <= tongSoNhom; i++) {
+            let el = document.getElementById(`nhom_${i}`);
+            if (i <= activeNhomMax && el) {
+                el.classList.remove('hidden-group');
+            }
+        }
+
+        const truBi = parseFloat(truBiInput.value) || 0;
+        const donGia = parseFloat(donGiaInput.value) || 0;
+
+        let sauTruBi = tongTatCaCacNhom - truBi;
+        if (sauTruBi < 0) sauTruBi = 0;
+
+        let thanhTien = sauTruBi * donGia;
+
+        document.getElementById('ketqua-chung').innerHTML = `
+            Tổng số mã đã nhập: <b>${soMaDaNhap} mã</b><br>
+            Tổng tất cả các nhóm: <b>${tongTatCaCacNhom.toLocaleString('vi-VN')}</b><br>
+            Sau trừ bì: <b>${sauTruBi.toLocaleString('vi-VN')}</b><br>
+            <b style="font-size: 16px;">Thành tiền: ${thanhTien.toLocaleString('vi-VN')} ₫</b>
+        `;
+    }
+
+    function langNgheNhap(e) {
+        const target = e.target;
+        if (target.tagName === 'INPUT' && target.id !== 'input-paste-ai') {
+            let key = '';
+            if (target.classList.contains('input-code')) {
+                key = `col_code_${target.getAttribute('data-nhom')}_${target.getAttribute('data-idx')}`;
+            } else if (target.id === 'input-trubi') {
+                key = `col_trubi`;
+            } else if (target.id === 'input-dongia') {
+                key = `col_dongia`;
+            }
+
+            if (key) {
+                localStorage.setItem(key, target.value);
+            }
+            tinhToanChung();
+        }
+    }
+
+    function taiDuLieuCu() {
+        const allInputs = document.querySelectorAll('.input-code');
+        allInputs.forEach(input => {
+            let key = `col_code_${input.getAttribute('data-nhom')}_${input.getAttribute('data-idx')}`;
+            if (localStorage.getItem(key) !== null) {
+                input.value = localStorage.getItem(key);
+            }
+        });
+
+        if (localStorage.getItem('col_trubi') !== null) {
+            truBiInput.value = localStorage.getItem('col_trubi');
+        }
+        if (localStorage.getItem('col_dongia') !== null) {
+            donGiaInput.value = localStorage.getItem('col_dongia');
+        }
+
+        tinhToanChung();
+    }
+
+    document.body.addEventListener('input', langNgheNhap);
+
+    async function xuatAnhVaGuiZalo() {
+        capNhatThoiGian();
+        const aiBox = document.getElementById('ai-box-container');
+        const containerNhom = document.getElementById('container-nhom');
+        
+        aiBox.style.display = 'none';
+        containerNhom.classList.add('exporting');
+
+        const element = document.getElementById('print-area');
+        try {
+            const canvas = await html2canvas(element, { 
+                scale: 2, 
+                useCORS: true,
+                backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg') 
+            });
+
+            aiBox.style.display = 'block';
+            containerNhom.classList.remove('exporting');
+
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], "bang-tinh-tien.png", { type: "image/png" });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            title: 'Bảng Tính Mã Hàng',
+                            text: 'Gửi kết quả bảng tính toán',
+                            files: [file]
+                        });
+                    } catch (err) {}
+                } else {
+                    const link = document.createElement('a');
+                    link.download = 'ket-qua-tinh-toan.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    alert("Đã lưu ảnh kết quả đầy đủ vào máy! Bạn có thể mở Zalo và gửi ảnh vừa tải lên.");
+                }
+            });
+        } catch (err) {
+            aiBox.style.display = 'block';
+            containerNhom.classList.remove('exporting');
+            alert("Không thể tạo ảnh. Vui lòng thử lại!");
+        }
+    }
+
+    function xoaTatCa() {
+        let password = prompt("Nhập mật khẩu để xác nhận xóa toàn bộ dữ liệu:");
+        if (password === "944151") {
+            localStorage.clear();
+            location.reload();
+        } else if (password !== null) {
+            alert("Mật khẩu không đúng! Không thể xóa dữ liệu.");
+        }
+    }
+
+    window.addEventListener('load', taoGiaoDien);
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+    }
+</script>
+
+</body>
+</html>
