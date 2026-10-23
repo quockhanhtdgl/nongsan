@@ -1,0 +1,9 @@
+{
+  "name": "Công Cụ Tính Toán",
+  "short_name": "TinhToan",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007aff",
+  "icons": []
+}
