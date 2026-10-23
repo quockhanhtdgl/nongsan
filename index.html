@@ -68,7 +68,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
         }
         h2 {
             margin: 0;
@@ -76,6 +76,12 @@
             font-size: 18px;
             flex: 1;
             text-align: center;
+        }
+        .time-stamp {
+            text-align: center;
+            font-size: 12px;
+            color: var(--sub-text);
+            margin-bottom: 12px;
         }
         .btn-theme {
             background: var(--box-bg);
@@ -246,6 +252,7 @@
         <h2>Bảng Nhập Mã Hàng</h2>
         <button class="btn-theme" onclick="toggleTheme()" id="theme-btn">🌙 Tối</button>
     </div>
+    <div class="time-stamp" id="time-stamp-display">Thời gian: Đang cập nhật...</div>
 
     <!-- Khung dán chuỗi số từ Gemini -->
     <div class="paste-ai-box">
@@ -289,6 +296,16 @@
     const truBiInput = document.getElementById('input-trubi');
     const donGiaInput = document.getElementById('input-dongia');
 
+    // Hiển thị thời gian ghi nhận thực tế
+    function capNhatThoiGian() {
+        const now = new Date();
+        const options = { 
+            hour: '2-digit', minute: '2-digit', second: '2-digit', 
+            day: '2-digit', month: '2-digit', year: 'numeric' 
+        };
+        document.getElementById('time-stamp-display').innerText = "📅 Thời gian: " + now.toLocaleDateString('vi-VN', options);
+    }
+
     // Chế độ Sáng / Tối
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -298,11 +315,11 @@
         document.getElementById('theme-btn').innerText = newTheme === 'dark' ? '☀️ Sáng' : '🌙 Tối';
     }
 
-    // Khởi tạo giao diện theme khi tải trang
     window.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('app_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         document.getElementById('theme-btn').innerText = savedTheme === 'dark' ? '☀️ Sáng' : '🌙 Tối';
+        capNhatThoiGian();
     });
 
     function taoGiaoDien() {
@@ -450,6 +467,7 @@
     document.body.addEventListener('input', langNgheNhap);
 
     async function xuatAnhVaGuiZalo() {
+        capNhatThoiGian(); // Cập nhật lại thời gian mới nhất khi xuất ảnh
         const element = document.getElementById('print-area');
         try {
             const canvas = await html2canvas(element, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg') });
