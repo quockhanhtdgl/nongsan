@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tính Toán Mã Hàng Cột</title>
+    <title>Tính Toán Mã Hàng</title>
 
     <!-- Cấu hình chạy dạng App Standalone (Ẩn nút reload & thanh địa chỉ) -->
     <link rel="manifest" href="manifest.json">
@@ -50,26 +50,29 @@
             font-size: 13px;
             color: #007aff;
             margin-bottom: 8px;
+            text-align: right; /* Đưa tiêu đề nhóm lệch sang phải một chút nếu thích */
         }
-        /* Cột dọc các mã */
+        /* Nhóm mã căn phải hoặc sắp xếp lệch phải */
         .column-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            align-items: flex-end; /* Đẩy các ô nhập lệch sang bên phải */
         }
         .input-code {
-            width: 100%;
+            width: 85%; /* Thu nhỏ lại một chút hoặc để 100% tùy ý, ở đây để lệch phải */
             padding: 10px 12px;
             border: 1px solid #c7c7cc;
             border-radius: 8px;
             font-size: 16px;
             outline: none;
             background: #fff;
+            text-align: right;
         }
         .input-code:focus {
             border-color: #007aff;
         }
-        /* Ô hiển thị Tổng ngay dưới mỗi nhóm */
+        /* Ô hiển thị Tổng ngay dưới mỗi nhóm và CĂN GIỮA */
         .group-total-box {
             margin-top: 10px;
             padding-top: 8px;
@@ -77,7 +80,7 @@
             font-size: 14px;
             color: #3a3a3c;
             font-weight: 600;
-            text-align: right;
+            text-align: center; /* Căn giữa đúng yêu cầu */
         }
         .hidden-group {
             display: none;
@@ -139,10 +142,10 @@
 <body>
 
 <div class="app-card">
-    <h2>Bảng Nhập Mã Theo Cột</h2>
+    <h2>Bảng Nhập Mã Hàng</h2>
 
     <div id="container-nhom">
-        <!-- Các nhóm 5 mã dạng cột sẽ được sinh tự động bằng JS -->
+        <!-- Các nhóm 5 mã sẽ được sinh tự động bằng JS -->
     </div>
 
     <!-- Khu vực tổng tất cả nhóm, trừ bì và thành tiền -->
@@ -218,7 +221,7 @@
                 }
             });
 
-            // Cập nhật ô tổng dưới mỗi nhóm
+            // Cập nhật ô tổng dưới mỗi nhóm (đã căn giữa trong CSS)
             const groupTotalEl = document.getElementById(`tong_nhom_${i}`);
             if (groupTotalEl) {
                 groupTotalEl.innerHTML = `Tổng nhóm ${i}: <span style="color:#007aff;">${tongNhomNay.toLocaleString('vi-VN')}</span>`;
